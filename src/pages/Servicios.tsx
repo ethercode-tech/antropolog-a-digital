@@ -1,5 +1,7 @@
-import { Briefcase, GraduationCap, BookOpen, Search, FileText, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Briefcase, GraduationCap, BookOpen, Search, FileText, Users, ClipboardList, DollarSign, Award, Receipt } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { services } from "@/data/mockData";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -10,6 +12,13 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   FileText,
   Users,
 };
+
+const tramites = [
+  { href: "/tramites/matriculacion", label: "Matriculación", icon: ClipboardList, description: "Solicite su matrícula profesional" },
+  { href: "/tramites/deuda", label: "Consulta de Deuda", icon: DollarSign, description: "Consulte el estado de sus cuotas" },
+  { href: "/tramites/constancia", label: "Tramitar Constancia", icon: Award, description: "Solicite constancia de habilitación" },
+  { href: "/tramites/facturas", label: "Descarga de Facturas", icon: Receipt, description: "Acceda a sus facturas" },
+];
 
 export default function Servicios() {
   return (
@@ -54,20 +63,42 @@ export default function Servicios() {
         </div>
       </section>
 
+      {/* Trámites Section */}
+      <section className="py-16 md:py-24 bg-primary/5">
+        <div className="container-main">
+          <h2 className="section-title text-center mb-4">Trámites en Línea</h2>
+          <p className="section-subtitle text-center max-w-2xl mx-auto mb-12">
+            Acceda a los principales trámites del Colegio de forma rápida y sencilla
+          </p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {tramites.map((tramite, index) => (
+              <Link key={tramite.href} to={tramite.href}>
+                <Card className="card-hover h-full border-primary/20 hover:border-primary/40 animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <CardContent className="p-6 text-center">
+                    <div className="w-14 h-14 mb-4 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                      <tramite.icon className="w-7 h-7 text-primary" />
+                    </div>
+                    <h3 className="font-serif text-lg font-semibold text-foreground mb-2">{tramite.label}</h3>
+                    <p className="text-sm text-muted-foreground">{tramite.description}</p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Additional Info */}
       <section className="py-16 md:py-24 bg-secondary/50">
         <div className="container-main">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="section-title">¿Necesitas más información?</h2>
             <p className="text-muted-foreground leading-relaxed mb-6">
-              Si deseas conocer más sobre nuestros servicios o estás interesado en colegiarte, no dudes en contactarnos. Nuestro equipo estará encantado de atenderte y resolver todas tus consultas.
+              Si deseas conocer más sobre nuestros servicios o estás interesado en colegiarte, no dudes en contactarnos.
             </p>
-            <a
-              href="/contacto"
-              className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors"
-            >
-              Ir a Contacto
-            </a>
+            <Link to="/contacto">
+              <Button size="lg">Ir a Contacto</Button>
+            </Link>
           </div>
         </div>
       </section>
