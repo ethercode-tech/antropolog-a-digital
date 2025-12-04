@@ -28,6 +28,7 @@ import AdminDocumentos from "./pages/admin/AdminDocumentos";
 import AdminDocumentoForm from "./pages/admin/AdminDocumentoForm";
 import AdminGaleria from "./pages/admin/AdminGaleria";
 import AdminGaleriaForm from "./pages/admin/AdminGaleriaForm";
+import WorkingOnIt from "./pages/WorkingOnIt";
 
 const queryClient = new QueryClient();
 
@@ -66,7 +67,7 @@ const App = () => (
           </Route>
 
           {/* 404 */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<WorkingOnIt />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
