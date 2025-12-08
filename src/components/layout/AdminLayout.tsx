@@ -15,14 +15,14 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/noticias", label: "Noticias", icon: Newspaper },
-  { href: "/admin/documentos", label: "Documentos", icon: FileText },
-  { href: "/admin/galeria", label: "Galería", icon: Image },
   { href: "/admin/usuarios", label: "Usuarios", icon: LayoutDashboard },
   { href: "/admin/matriculacion", label: "Matriculación", icon: FileText },
   { href: "/admin/deudas", label: "Deudas", icon: FileText },
   { href: "/admin/constancias", label: "Constancias", icon: FileText },
   { href: "/admin/facturas", label: "Facturas", icon: FileText },
+  { href: "/admin/noticias", label: "Noticias", icon: Newspaper },
+  { href: "/admin/documentos", label: "Documentos", icon: FileText },
+  { href: "/admin/galeria", label: "Galería", icon: Image },
 ];
 
 export function AdminLayout() {

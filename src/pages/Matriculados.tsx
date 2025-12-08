@@ -1,177 +1,392 @@
-import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { Search, User, MapPin, GraduationCap, Filter } from "lucide-react";
+"use client";
+
+import { useMemo, useState } from "react";
+import { Search, User, Briefcase, MapPin, Clipboard, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { mockProfesionales, TipoProfesional, EstadoMatricula } from "@/data/profesionalesData";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
-const tipoLabels: Record<TipoProfesional, string> = {
-  licenciado: "Licenciado/a",
-  tecnico: "Técnico/a",
-  otro: "Otro"
+type TipoProfesional = "Licenciado" | "Técnico / Otro";
+
+type Profesional = {
+  id: string;
+  nombre: string;
+  matricula: string;
+  tipo: TipoProfesional;
+  especialidad: string;
+  lugarTrabajo: string;
+  estadoMatricula: "Activa" | "Inactiva" | "En revisión";
+  email?: string;
+  telefono?: string;
+  cvPdfUrl?: string;
 };
 
-const estadoLabels: Record<EstadoMatricula, string> = {
-  activo: "Activo",
-  inactivo: "Inactivo",
-  en_revision: "En Revisión",
-  suspendido: "Suspendido"
-};
+const MOCK_PROFESIONALES: Profesional[] = [
+  {
+    id: "1",
+    nombre: "María López",
+    matricula: "ANT-00123",
+    tipo: "Licenciado",
+    especialidad: "Antropología Social",
+    lugarTrabajo: "San Salvador de Jujuy",
+    estadoMatricula: "Activa",
+    email: "maria.lopez@example.com",
+    telefono: "+54 9 388 555 0101",
+    cvPdfUrl: "https://ejemplo.com/cv/maria-lopez.pdf",
+  },
+  {
+    id: "2",
+    nombre: "Juan Pérez",
+    matricula: "ANT-00124",
+    tipo: "Técnico / Otro",
+    especialidad: "Gestión Cultural",
+    lugarTrabajo: "Palpalá",
+    estadoMatricula: "En revisión",
+    email: "juan.perez@example.com",
+  },
+  // TODO: reemplazar MOCK_PROFESIONALES por datos reales desde la base de datos
+];
 
-const estadoColors: Record<EstadoMatricula, string> = {
-  activo: "bg-green-100 text-green-800",
-  inactivo: "bg-gray-100 text-gray-800",
-  en_revision: "bg-yellow-100 text-yellow-800",
-  suspendido: "bg-red-100 text-red-800"
-};
+export default function MatriculadosPage() {
+  const { toast } = useToast();
 
-export default function Matriculados() {
-  const [searchName, setSearchName] = useState("");
+  const [searchNombre, setSearchNombre] = useState("");
   const [searchEspecialidad, setSearchEspecialidad] = useState("");
   const [searchLugar, setSearchLugar] = useState("");
-  const [filterTipo, setFilterTipo] = useState<string>("todos");
+  const [tipoFilter, setTipoFilter] = useState<TipoProfesional | "Todos">(
+    "Licenciado"
+  );
+  const [selected, setSelected] = useState<Profesional | null>(null);
 
-  const filteredProfesionales = useMemo(() => {
-    return mockProfesionales.filter(p => {
-      const matchName = p.nombre.toLowerCase().includes(searchName.toLowerCase());
-      const matchEspecialidad = p.especialidad.toLowerCase().includes(searchEspecialidad.toLowerCase());
-      const matchLugar = p.lugarTrabajo.toLowerCase().includes(searchLugar.toLowerCase());
-      const matchTipo = filterTipo === "todos" || p.tipo === filterTipo;
-      return matchName && matchEspecialidad && matchLugar && matchTipo;
+  const profesionalesFiltrados = useMemo(() => {
+    return MOCK_PROFESIONALES.filter((p) => {
+      const matchTipo =
+        tipoFilter === "Todos" ? true : p.tipo === tipoFilter;
+
+      const matchNombre = p.nombre
+        .toLowerCase()
+        .includes(searchNombre.toLowerCase());
+
+      const matchEspecialidad = p.especialidad
+        .toLowerCase()
+        .includes(searchEspecialidad.toLowerCase());
+
+      const matchLugar = p.lugarTrabajo
+        .toLowerCase()
+        .includes(searchLugar.toLowerCase());
+
+      return matchTipo && matchNombre && matchEspecialidad && matchLugar;
     });
-  }, [searchName, searchEspecialidad, searchLugar, filterTipo]);
+  }, [tipoFilter, searchNombre, searchEspecialidad, searchLugar]);
+
+  const handleCopy = async (profesional: Profesional) => {
+    const lines = [
+      `Nombre: ${profesional.nombre}`,
+      `Matrícula: ${profesional.matricula}`,
+      `Tipo: ${profesional.tipo}`,
+      `Estado de matrícula: ${profesional.estadoMatricula}`,
+      `Especialidad: ${profesional.especialidad}`,
+      `Lugar de trabajo: ${profesional.lugarTrabajo}`,
+      profesional.email ? `Correo: ${profesional.email}` : "",
+      profesional.telefono ? `Teléfono: ${profesional.telefono}` : "",
+      profesional.cvPdfUrl ? `CV: ${profesional.cvPdfUrl}` : "",
+    ].filter(Boolean);
+
+    try {
+      await navigator.clipboard.writeText(lines.join("\n"));
+      toast({
+        title: "Datos copiados",
+        description: "La información del profesional se copió al portapapeles.",
+      });
+    } catch {
+      toast({
+        title: "No se pudo copiar",
+        description: "Ocurrió un problema al copiar los datos.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="animate-fade-in">
       {/* Header */}
       <section className="bg-secondary py-16 md:py-24">
         <div className="container-main">
-          <h1 className="section-title text-center">Profesionales Matriculados</h1>
+          <h1 className="section-title text-center">Profesionales matriculados</h1>
           <p className="section-subtitle text-center max-w-2xl mx-auto">
-            Consulta el listado de profesionales matriculados en el Colegio de Antropología
+            Consultá el padrón público de profesionales matriculados, filtrá por
+            nombre, especialidad o lugar de trabajo y accedé al perfil básico
+            de cada uno.
           </p>
         </div>
       </section>
 
-      {/* Search and Filters */}
-      <section className="py-8 bg-background border-b border-border">
-        <div className="container-main">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      {/* Filters + List */}
+      <section className="py-16 md:py-24">
+        <div className="container-main space-y-10">
+          {/* Filters */}
+          <div className="grid gap-4 lg:grid-cols-[1.2fr,1.2fr,1.2fr,auto] items-end">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                <Search className="w-4 h-4" />
+                Buscar por nombre
+              </label>
               <Input
-                placeholder="Buscar por nombre..."
-                value={searchName}
-                onChange={(e) => setSearchName(e.target.value)}
-                className="pl-10"
+                placeholder="Ejemplo: María, Juan…"
+                value={searchNombre}
+                onChange={(e) => setSearchNombre(e.target.value)}
               />
             </div>
-            <div className="relative">
-              <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Especialidad
+              </label>
               <Input
-                placeholder="Especialidad..."
+                placeholder="Antropología social, forense…"
                 value={searchEspecialidad}
                 onChange={(e) => setSearchEspecialidad(e.target.value)}
-                className="pl-10"
               />
             </div>
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Lugar de trabajo
+              </label>
               <Input
-                placeholder="Lugar de trabajo..."
+                placeholder="Ciudad, institución, región…"
                 value={searchLugar}
                 onChange={(e) => setSearchLugar(e.target.value)}
-                className="pl-10"
               />
             </div>
-            <Select value={filterTipo} onValueChange={setFilterTipo}>
-              <SelectTrigger>
-                <Filter className="w-4 h-4 mr-2" />
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos los tipos</SelectItem>
-                <SelectItem value="licenciado">Licenciados</SelectItem>
-                <SelectItem value="tecnico">Técnicos</SelectItem>
-                <SelectItem value="otro">Otros</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </section>
 
-      {/* Results */}
-      <section className="py-12 md:py-16">
-        <div className="container-main">
-          <p className="text-muted-foreground mb-6">
-            Mostrando {filteredProfesionales.length} profesional(es)
-          </p>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProfesionales.map((profesional, index) => (
-              <Card 
-                key={profesional.id} 
-                className="card-hover animate-fade-in-up"
-                style={{ animationDelay: `${index * 0.05}s` }}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Tipo
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant={tipoFilter === "Licenciado" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTipoFilter("Licenciado")}
+                >
+                  Licenciados
+                </Button>
+                <Button
+                  type="button"
+                  variant={
+                    tipoFilter === "Técnico / Otro" ? "default" : "outline"
+                  }
+                  size="sm"
+                  onClick={() => setTipoFilter("Técnico / Otro")}
+                >
+                  Otros
+                </Button>
+                <Button
+                  type="button"
+                  variant={tipoFilter === "Todos" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTipoFilter("Todos")}
+                >
+                  Todos
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Results summary */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <p className="text-sm text-muted-foreground">
+              Se encontraron{" "}
+              <span className="font-semibold">
+                {profesionalesFiltrados.length}
+              </span>{" "}
+              profesionales según los filtros aplicados.
+            </p>
+          </div>
+
+          {/* List */}
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {profesionalesFiltrados.map((profesional) => (
+              <Card
+                key={profesional.id}
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelected(profesional)}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <User className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-serif font-semibold text-foreground truncate">
-                        {profesional.nombre}
-                      </h3>
-                      <p className="text-sm text-primary font-medium">
-                        {profesional.matricula}
+                <CardContent className="p-5 space-y-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-primary" />
+                        <h2 className="font-semibold text-foreground">
+                          {profesional.nombre}
+                        </h2>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Matrícula{" "}
+                        <span className="font-medium">
+                          {profesional.matricula}
+                        </span>
                       </p>
                     </div>
-                  </div>
-                  
-                  <div className="mt-4 space-y-2">
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <GraduationCap className="w-4 h-4" />
-                      {profesional.especialidad}
-                    </p>
-                    <p className="text-sm text-muted-foreground flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      {profesional.lugarTrabajo}
-                    </p>
+                    <Badge
+                      variant={
+                        profesional.estadoMatricula === "Activa"
+                          ? "default"
+                          : profesional.estadoMatricula === "En revisión"
+                          ? "secondary"
+                          : "outline"
+                      }
+                    >
+                      {profesional.estadoMatricula}
+                    </Badge>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="flex gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {tipoLabels[profesional.tipo]}
-                      </Badge>
-                      <Badge className={`text-xs ${estadoColors[profesional.estadoMatricula]}`}>
-                        {estadoLabels[profesional.estadoMatricula]}
-                      </Badge>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-primary" />
+                      <span>{profesional.especialidad}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-primary" />
+                      <span>{profesional.lugarTrabajo}</span>
                     </div>
                   </div>
 
-                  <Link to={`/matriculados/${profesional.id}`}>
-                    <Button variant="outline" size="sm" className="w-full mt-4">
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-xs text-muted-foreground">
+                      {profesional.tipo}
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelected(profesional);
+                      }}
+                    >
                       Ver perfil
                     </Button>
-                  </Link>
+                  </div>
                 </CardContent>
               </Card>
             ))}
-          </div>
 
-          {filteredProfesionales.length === 0 && (
-            <div className="text-center py-12">
-              <User className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No se encontraron profesionales con los criterios de búsqueda</p>
-            </div>
-          )}
+            {profesionalesFiltrados.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No se encontraron profesionales con los filtros actuales.
+              </p>
+            )}
+          </div>
         </div>
       </section>
+
+      {/* Modal de detalle */}
+      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+        <DialogContent className="max-w-lg">
+          {selected && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center justify-between gap-3">
+                  <span>{selected.nombre}</span>
+                  <Badge
+                    variant={
+                      selected.estadoMatricula === "Activa"
+                        ? "default"
+                        : selected.estadoMatricula === "En revisión"
+                        ? "secondary"
+                        : "outline"
+                    }
+                  >
+                    {selected.estadoMatricula}
+                  </Badge>
+                </DialogTitle>
+                <DialogDescription>
+                  Ficha pública del profesional matriculado.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 mt-2">
+                <div className="space-y-1 text-sm">
+                  <p>
+                    <span className="font-semibold">Matrícula: </span>
+                    {selected.matricula}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Tipo: </span>
+                    {selected.tipo}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Especialidad: </span>
+                    {selected.especialidad}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Lugar de trabajo: </span>
+                    {selected.lugarTrabajo}
+                  </p>
+                  {selected.email && (
+                    <p>
+                      <span className="font-semibold">Correo: </span>
+                      {selected.email}
+                    </p>
+                  )}
+                  {selected.telefono && (
+                    <p>
+                      <span className="font-semibold">Teléfono: </span>
+                      {selected.telefono}
+                    </p>
+                  )}
+                  {selected.cvPdfUrl && (
+                    <p>
+                      <span className="font-semibold">CV: </span>
+                      <a
+                        href={selected.cvPdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary underline"
+                      >
+                        Ver CV en PDF
+                      </a>
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-3 justify-between">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => handleCopy(selected)}
+                  >
+                    <Clipboard className="w-4 h-4 mr-2" />
+                    Copiar datos
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="flex items-center gap-2"
+                    onClick={() => setSelected(null)}
+                  >
+                    <X className="w-4 h-4" />
+                    Cerrar
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

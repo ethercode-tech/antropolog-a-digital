@@ -1,29 +1,131 @@
 import { Link } from "react-router-dom";
-import { Newspaper, FileText, Image, ArrowRight } from "lucide-react";
+import {
+  Newspaper,
+  FileText,
+  Image,
+  ArrowRight,
+  Users,
+  ClipboardList,
+  FileWarning,
+  Award,
+  Receipt,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { mockNews, mockDocuments, mockGalleryImages } from "@/data/mockData";
 
-const stats = [
+type StatCardConfig = {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  value?: number;
+};
+
+type QuickActionConfig = {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  description?: string;
+};
+
+const stats: StatCardConfig[] = [
+  {
+    label: "Usuarios",
+    href: "/admin/usuarios",
+    icon: Users,
+    color: "bg-sky-500/10 text-sky-500",
+    // TODO: reemplazar con conteo real
+  },
+  {
+    label: "Matriculación",
+    href: "/admin/matriculacion",
+    icon: ClipboardList,
+    color: "bg-emerald-500/10 text-emerald-500",
+    // value: pendientes de revisión, cuando tengas API
+  },
+  {
+    label: "Deudas",
+    href: "/admin/deudas",
+    icon: FileWarning,
+    color: "bg-amber-500/10 text-amber-500",
+  },
+  {
+    label: "Constancias",
+    href: "/admin/constancias",
+    icon: Award,
+    color: "bg-purple-500/10 text-purple-500",
+  },
+  {
+    label: "Facturas",
+    href: "/admin/facturas",
+    icon: Receipt,
+    color: "bg-rose-500/10 text-rose-500",
+  },
   {
     label: "Noticias",
-    value: mockNews.length,
-    icon: Newspaper,
     href: "/admin/noticias",
-    color: "bg-blue-500/10 text-blue-600",
+    icon: Newspaper,
+    color: "bg-blue-500/10 text-blue-500",
+    value: mockNews.length,
   },
   {
     label: "Documentos",
-    value: mockDocuments.length,
-    icon: FileText,
     href: "/admin/documentos",
-    color: "bg-green-500/10 text-green-600",
+    icon: FileText,
+    color: "bg-green-500/10 text-green-500",
+    value: mockDocuments.length,
   },
   {
     label: "Imágenes",
-    value: mockGalleryImages.length,
-    icon: Image,
     href: "/admin/galeria",
-    color: "bg-amber-500/10 text-amber-600",
+    icon: Image,
+    color: "bg-amber-500/10 text-amber-500",
+    value: mockGalleryImages.length,
+  },
+];
+
+const quickActions: QuickActionConfig[] = [
+  {
+    label: "Ver solicitudes de matriculación",
+    href: "/admin/matriculacion",
+    icon: ClipboardList,
+    description: "Revisar y aprobar nuevas matrículas",
+  },
+  {
+    label: "Gestionar deudas",
+    href: "/admin/deudas",
+    icon: FileWarning,
+    description: "Ver y actualizar estado de cuotas",
+  },
+  {
+    label: "Emitir constancias",
+    href: "/admin/constancias",
+    icon: Award,
+    description: "Generar constancias para colegiados",
+  },
+  {
+    label: "Generar facturas",
+    href: "/admin/facturas",
+    icon: Receipt,
+    description: "Emitir y revisar facturación",
+  },
+  {
+    label: "Nueva noticia",
+    href: "/admin/noticias/nueva",
+    icon: Newspaper,
+    description: "Publicar contenido en la web",
+  },
+  {
+    label: "Nuevo documento",
+    href: "/admin/documentos/nuevo",
+    icon: FileText,
+    description: "Subir normativa o material de consulta",
+  },
+  {
+    label: "Nueva imagen de galería",
+    href: "/admin/galeria/nueva",
+    icon: Image,
+    description: "Actualizar la galería institucional",
   },
 ];
 
@@ -35,70 +137,93 @@ export default function AdminDashboard() {
           Dashboard
         </h1>
         <p className="text-muted-foreground mt-1">
-          Bienvenido al panel de administración del Colegio de Antropología.
+          Panel general de gestión del Colegio de Antropología.
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        {stats.map((stat, index) => (
-          <Card 
-            key={stat.label} 
-            className="card-hover border-border animate-fade-in-up"
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm mb-1">{stat.label}</p>
-                  <p className="text-3xl font-bold text-foreground">{stat.value}</p>
-                </div>
-                <div className={`w-12 h-12 rounded-xl ${stat.color} flex items-center justify-center`}>
-                  <stat.icon className="w-6 h-6" />
-                </div>
-              </div>
-              <Link
-                to={stat.href}
-                className="mt-4 text-sm text-primary font-medium inline-flex items-center gap-1 hover:gap-2 transition-all"
+      {/* Módulos principales */}
+      <section className="mb-10">
+        <h2 className="text-sm font-semibold text-muted-foreground mb-3">
+          Módulos del sistema
+        </h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {stats.map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <Card
+                key={stat.label}
+                className="card-hover border-border animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.05}s` }}
               >
-                Gestionar <ArrowRight className="w-4 h-4" />
-              </Link>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                <CardContent className="p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        {stat.label}
+                      </p>
+                      {typeof stat.value === "number" ? (
+                        <p className="text-2xl font-bold text-foreground">
+                          {stat.value}
+                        </p>
+                      ) : (
+                        <p className="text-xl font-semibold text-muted-foreground">
+                          —
+                        </p>
+                      )}
+                    </div>
+                    <div
+                      className={`w-11 h-11 rounded-xl ${stat.color} flex items-center justify-center`}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <Link
+                    to={stat.href}
+                    className="mt-4 text-xs text-primary font-medium inline-flex items-center gap-1 hover:gap-2 transition-all"
+                  >
+                    Ir al módulo <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </section>
 
-      {/* Quick Actions */}
-      <Card className="border-border">
-        <CardContent className="p-6">
-          <h2 className="font-serif text-lg font-semibold text-foreground mb-4">
-            Acciones rápidas
-          </h2>
-          <div className="grid sm:grid-cols-3 gap-4">
-            <Link
-              to="/admin/noticias/nueva"
-              className="p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors text-center"
-            >
-              <Newspaper className="w-8 h-8 mx-auto mb-2 text-primary" />
-              <p className="font-medium text-foreground">Nueva noticia</p>
-            </Link>
-            <Link
-              to="/admin/documentos/nuevo"
-              className="p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors text-center"
-            >
-              <FileText className="w-8 h-8 mx-auto mb-2 text-primary" />
-              <p className="font-medium text-foreground">Nuevo documento</p>
-            </Link>
-            <Link
-              to="/admin/galeria/nueva"
-              className="p-4 rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 transition-colors text-center"
-            >
-              <Image className="w-8 h-8 mx-auto mb-2 text-primary" />
-              <p className="font-medium text-foreground">Nueva imagen</p>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Acciones rápidas */}
+      <section>
+        <Card className="border-border">
+          <CardContent className="p-6">
+            <h2 className="font-serif text-lg font-semibold text-foreground mb-4">
+              Acciones rápidas
+            </h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {quickActions.map((action, index) => {
+                const Icon = action.icon;
+                return (
+                  <Link
+                    key={action.label}
+                    to={action.href}
+                    className="p-4 rounded-lg border border-border hover:border-primary/60 hover:bg-primary/5 transition-colors flex flex-col items-start gap-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icon className="w-5 h-5 text-primary" />
+                      <p className="font-medium text-foreground text-sm">
+                        {action.label}
+                      </p>
+                    </div>
+                    {action.description && (
+                      <p className="text-xs text-muted-foreground text-left">
+                        {action.description}
+                      </p>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </section>
     </div>
   );
 }

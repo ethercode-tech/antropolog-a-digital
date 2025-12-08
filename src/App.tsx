@@ -29,6 +29,19 @@ import AdminDocumentoForm from "./pages/admin/AdminDocumentoForm";
 import AdminGaleria from "./pages/admin/AdminGaleria";
 import AdminGaleriaForm from "./pages/admin/AdminGaleriaForm";
 import WorkingOnIt from "./pages/WorkingOnIt";
+import Matriculados from "./pages/Matriculados";
+import AdminMatriculacion from "./pages/admin/AdminMatriculacion";
+import AdminMatriculacionDetalle from "./pages/admin/AdminMatriculacionDetalle";
+import Constancia from "./pages/tramites/Constancia";
+import Facturas from "./pages/tramites/Facturas";
+import Deuda from "./pages/tramites/Deuda";
+import Matriculacion from "./pages/tramites/Matriculacion";
+import AdminConstancias from "./pages/admin/AdminConstancias";
+import AdminFacturas from "./pages/admin/AdminFacturas";
+import AdminDeudas from "./pages/admin/AdminDeudas";
+import AdminFacturaForm from "./pages/admin/AdminFacturaForm";
+import AdminUsuarios from "./pages/admin/AdminUsuarios";
+import AdminUsuarioForm from "./pages/admin/AdminUsuarioForm";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +62,11 @@ const App = () => (
             <Route path="/publicaciones" element={<Publicaciones />} />
             <Route path="/galeria" element={<Galeria />} />
             <Route path="/contacto" element={<Contacto />} />
+            <Route path="/matriculados" element={<Matriculados />} />
+            <Route path="/tramites/matriculacion" element={<Matriculacion />} />
+            <Route path="/tramites/deuda" element={<Deuda />} />
+            <Route path="/tramites/constancia" element={<Constancia />} />
+            <Route path="/tramites/facturas" element={<Facturas />} />
           </Route>
 
           {/* Admin routes */}
@@ -64,6 +82,14 @@ const App = () => (
             <Route path="galeria" element={<AdminGaleria />} />
             <Route path="galeria/nueva" element={<AdminGaleriaForm />} />
             <Route path="galeria/:id" element={<AdminGaleriaForm />} />
+            <Route path="matriculacion" element={<AdminMatriculacion />} />
+            <Route path="matriculacion/:id" element={<AdminMatriculacionDetalle />} />
+            <Route path="constancias" element={<AdminConstancias />} />
+            <Route path="facturas" element={<AdminFacturas />} />
+            <Route path="facturas/nueva" element={<AdminFacturaForm />} />
+            <Route path="usuarios" element={<AdminUsuarios />} />
+            <Route path="usuarios/nuevo" element={<AdminUsuarioForm />} />
+            <Route path="deudas" element={<AdminDeudas />} />
           </Route>
 
           {/* 404 */}
