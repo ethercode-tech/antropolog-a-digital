@@ -29,13 +29,13 @@ type QuickActionConfig = {
 };
 
 const stats: StatCardConfig[] = [
-  {
-    label: "Usuarios",
-    href: "/admin/usuarios",
-    icon: Users,
-    color: "bg-sky-500/10 text-sky-500",
-    // TODO: reemplazar con conteo real
-  },
+  // {
+  //   label: "Usuarios",
+  //   href: "/admin/usuarios",
+  //   icon: Users,
+  //   color: "bg-sky-500/10 text-sky-500",
+  //   // TODO: reemplazar con conteo real
+  // },
   {
     label: "Matriculación",
     href: "/admin/matriculacion",
@@ -49,12 +49,12 @@ const stats: StatCardConfig[] = [
     icon: FileWarning,
     color: "bg-amber-500/10 text-amber-500",
   },
-  {
-    label: "Constancias",
-    href: "/admin/constancias",
-    icon: Award,
-    color: "bg-purple-500/10 text-purple-500",
-  },
+  // {
+  //   label: "Constancias",
+  //   href: "/admin/constancias",
+  //   icon: Award,
+  //   color: "bg-purple-500/10 text-purple-500",
+  // },
   {
     label: "Facturas",
     href: "/admin/facturas",
@@ -97,12 +97,12 @@ const quickActions: QuickActionConfig[] = [
     icon: FileWarning,
     description: "Ver y actualizar estado de cuotas",
   },
-  {
-    label: "Emitir constancias",
-    href: "/admin/constancias",
-    icon: Award,
-    description: "Generar constancias para colegiados",
-  },
+  // {
+  //   label: "Emitir constancias",
+  //   href: "/admin/constancias",
+  //   icon: Award,
+  //   description: "Generar constancias para colegiados",
+  // },
   {
     label: "Generar facturas",
     href: "/admin/facturas",

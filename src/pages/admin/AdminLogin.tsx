@@ -1,3 +1,4 @@
+// src/pages/admin/AdminLogin.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BookOpen, LogIn } from "lucide-react";
@@ -6,12 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-
-// Mock credentials - in production this would validate against the database
-const MOCK_ADMIN = {
-  email: "admin@colegiodeantropologia.test",
-  password: "Admin1234",
-};
+import { supabase } from "@/integrations/supabase/client";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -33,26 +29,35 @@ export default function AdminLogin() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
 
-    if (formData.email === MOCK_ADMIN.email && formData.password === MOCK_ADMIN.password) {
-      // Store auth state (in production, this would be a secure session)
+      if (error || !data.session) {
+        throw new Error(error?.message || "Credenciales inválidas");
+      }
+
+      // El SDK ya guarda el session en localStorage por defecto.
+      // Acá podés marcar "adminAuth" solo como flag del panel.
       localStorage.setItem("adminAuth", "true");
+
       toast({
         title: "Bienvenido",
         description: "Has iniciado sesión correctamente.",
       });
+
       navigate("/admin");
-    } else {
+    } catch (err: any) {
       toast({
         title: "Error de autenticación",
-        description: "Las credenciales ingresadas no son válidas.",
+        description: err.message || "No se pudo iniciar sesión.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
@@ -72,7 +77,9 @@ export default function AdminLogin() {
         {/* Login Card */}
         <Card className="border-border">
           <CardHeader className="pb-4">
-            <h2 className="font-serif text-xl font-semibold text-center">Iniciar sesión</h2>
+            <h2 className="font-serif text-xl font-semibold text-center">
+              Iniciar sesión
+            </h2>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -85,7 +92,6 @@ export default function AdminLogin() {
                   placeholder="admin@ejemplo.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className="input-field"
                   required
                 />
               </div>
@@ -99,15 +105,12 @@ export default function AdminLogin() {
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={handleChange}
-                  className="input-field"
                   required
                 />
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  "Ingresando..."
-                ) : (
+                {isLoading ? "Ingresando..." : (
                   <>
                     <LogIn className="w-4 h-4 mr-2" />
                     Ingresar
@@ -115,19 +118,14 @@ export default function AdminLogin() {
                 )}
               </Button>
             </form>
-
-            {/* Demo credentials hint */}
-            <div className="mt-6 p-4 bg-muted rounded-lg">
-              <p className="text-sm text-muted-foreground text-center">
-                <strong>Demo:</strong> admin@colegiodeantropologia.test / Admin1234
-              </p>
-            </div>
           </CardContent>
         </Card>
 
-        {/* Back to site */}
         <div className="text-center mt-6">
-          <a href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <a
+            href="/"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             ← Volver al sitio público
           </a>
         </div>
