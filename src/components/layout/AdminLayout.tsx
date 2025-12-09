@@ -1,24 +1,32 @@
+// src/components/layout/AdminLayout.tsx
 import { useEffect, useState } from "react";
-import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Newspaper, 
-  FileText, 
-  Image, 
-  LogOut, 
+import {
+  Outlet,
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+import {
+  LayoutDashboard,
+  Newspaper,
+  FileText,
+  Image,
+  LogOut,
   Menu,
   X,
-  BookOpen
+  BookOpen,
+  // Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/usuarios", label: "Usuarios", icon: LayoutDashboard },
+  // { href: "/admin/usuarios", label: "Usuarios", icon: Users },
   { href: "/admin/matriculacion", label: "Matriculación", icon: FileText },
   { href: "/admin/deudas", label: "Deudas", icon: FileText },
-  { href: "/admin/constancias", label: "Constancias", icon: FileText },
+  // { href: "/admin/constancias", label: "Constancias", icon: FileText },
   { href: "/admin/facturas", label: "Facturas", icon: FileText },
   { href: "/admin/noticias", label: "Noticias", icon: Newspaper },
   { href: "/admin/documentos", label: "Documentos", icon: FileText },
@@ -29,18 +37,54 @@ export function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
 
-  // Check auth on mount
+  // Guard: verificar sesión real de Supabase al montar
   useEffect(() => {
-    const isAuth = localStorage.getItem("adminAuth");
-    if (!isAuth) {
-      navigate("/admin/login");
-    }
+    let isMounted = true;
+
+    const checkSession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session) {
+          // limpieza por si quedó algo viejo
+          localStorage.removeItem("adminAuth");
+          if (isMounted) {
+            navigate("/admin/login", { replace: true });
+          }
+        } else {
+          // opcional: podrías validar que el mail sea admin
+          localStorage.setItem("adminAuth", "true");
+        }
+      } catch (err) {
+        // si algo falla, lo más seguro es sacarlo del panel
+        localStorage.removeItem("adminAuth");
+        if (isMounted) {
+          navigate("/admin/login", { replace: true });
+        }
+      } finally {
+        if (isMounted) setCheckingSession(false);
+      }
+    };
+
+    checkSession();
+
+    return () => {
+      isMounted = false;
+    };
   }, [navigate]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // si falla igual limpiamos el front
+    }
     localStorage.removeItem("adminAuth");
-    navigate("/admin/login");
+    navigate("/admin/login", { replace: true });
   };
 
   const isActive = (path: string) => {
@@ -49,6 +93,22 @@ export function AdminLayout() {
     }
     return location.pathname.startsWith(path);
   };
+
+  // Mientras chequea sesión, no mostramos el panel para evitar parpadeos raros
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+            <BookOpen className="w-5 h-5 text-muted-foreground" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Verificando sesión del administrador…
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -61,14 +121,18 @@ export function AdminLayout() {
               <BookOpen className="w-5 h-5 text-sidebar-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-serif font-semibold text-sidebar-foreground">Admin</h1>
-              <p className="text-xs text-sidebar-foreground/60">Colegio de Antropología</p>
+              <h1 className="font-serif font-semibold text-sidebar-foreground">
+                Admin
+              </h1>
+              <p className="text-xs text-sidebar-foreground/60">
+                Colegio de Antropología
+              </p>
             </div>
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -107,17 +171,19 @@ export function AdminLayout() {
 
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-foreground/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar - Mobile */}
-      <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar transform transition-transform lg:hidden",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar transform transition-transform lg:hidden",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
         {/* Close button */}
         <Button
           variant="ghost"
@@ -130,19 +196,27 @@ export function AdminLayout() {
 
         {/* Logo */}
         <div className="p-6 border-b border-sidebar-border">
-          <Link to="/admin" className="flex items-center gap-3" onClick={() => setSidebarOpen(false)}>
+          <Link
+            to="/admin"
+            className="flex items-center gap-3"
+            onClick={() => setSidebarOpen(false)}
+          >
             <div className="w-10 h-10 rounded-full bg-sidebar-primary flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-sidebar-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-serif font-semibold text-sidebar-foreground">Admin</h1>
-              <p className="text-xs text-sidebar-foreground/60">Colegio de Antropología</p>
+              <h1 className="font-serif font-semibold text-sidebar-foreground">
+                Admin
+              </h1>
+              <p className="text-xs text-sidebar-foreground/60">
+                Colegio de Antropología
+              </p>
             </div>
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -185,7 +259,9 @@ export function AdminLayout() {
           >
             <Menu className="w-6 h-6" />
           </Button>
-          <h1 className="font-serif font-semibold">Panel Administrativo</h1>
+          <h1 className="font-serif font-semibold">
+            Panel Administrativo
+          </h1>
         </header>
 
         {/* Page content */}

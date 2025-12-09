@@ -42,12 +42,12 @@ const professionalShortcuts = [
     href: "/tramites/facturas",
     icon: Receipt,
   },
-  {
-    title: "Tramitar constancia",
-    description: "Solicite constancias de matrícula y habilitación.",
-    href: "/tramites/constancia",
-    icon: Award,
-  },
+  // {
+  //   title: "Tramitar constancia",
+  //   description: "Solicite constancias de matrícula y habilitación.",
+  //   href: "/tramites/constancia",
+  //   icon: Award,
+  // },
   {
     title: "Padrón de matriculados",
     description: "Busque profesionales habilitados por nombre o especialidad.",

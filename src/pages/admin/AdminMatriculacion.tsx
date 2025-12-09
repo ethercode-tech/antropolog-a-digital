@@ -10,6 +10,8 @@ import {
   Pencil,
 } from "lucide-react";
 
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 import {
   Profesional,
@@ -34,45 +37,6 @@ import {
   getTipoProfesionalLabel,
 } from "@/lib/types/profesionales";
 
-// TODO: reemplazar por datos reales desde la API / DB
-const MOCK_PROFESIONALES: Profesional[] = [
-  {
-    id: "1",
-    matricula: "ANT-00123",
-    apellido: "López",
-    nombre: "María",
-    tipo: "licenciado",
-    especialidadPrincipal: "Antropología Social",
-    lugarTrabajo: "San Salvador de Jujuy",
-    localidad: "San Salvador de Jujuy",
-    provincia: "Jujuy",
-    estadoMatricula: "activa",
-    habilitadoEjercer: true,
-    tieneDeuda: false,
-    email: "maria.lopez@example.com",
-    telefono: "+54 9 388 555 0101",
-    cvPdfUrl: "https://ejemplo.com/cv/maria-lopez.pdf",
-    fechaAlta: "2024-03-10T00:00:00.000Z",
-  },
-  {
-    id: "2",
-    matricula: "ANT-00124",
-    apellido: "Pérez",
-    nombre: "Juan",
-    tipo: "tecnico_otro",
-    especialidadPrincipal: "Gestión Cultural",
-    lugarTrabajo: "Palpalá",
-    localidad: "Palpalá",
-    provincia: "Jujuy",
-    estadoMatricula: "en_revision",
-    habilitadoEjercer: false,
-    tieneDeuda: true,
-    email: "juan.perez@example.com",
-    fechaAlta: "2024-05-02T00:00:00.000Z",
-    ultimoPeriodoPago: "2024-10",
-  },
-];
-
 type FormMode = "create" | "edit";
 
 type ProfesionalFormState = Omit<
@@ -80,12 +44,149 @@ type ProfesionalFormState = Omit<
   "id" | "fechaAlta" | "fechaActualizacion"
 >;
 
+// ───────────────────────────────
+// Helpers para llamar al BFF admin
+// ───────────────────────────────
+
+async function getAdminToken() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) throw new Error("No hay sesión de administrador");
+  return session.access_token;
+}
+
+async function fetchProfesionales(): Promise<Profesional[]> {
+  const token = await getAdminToken();
+
+  const res = await fetch("/api/admin/profesionales", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("No se pudieron cargar los profesionales");
+  }
+
+  const data = await res.json();
+  // Aseguramos array aunque venga null/undefined
+  return Array.isArray(data) ? data : [];
+}
+
+async function createProfesionalRequest(
+  payload: ProfesionalFormState
+): Promise<Profesional> {
+  const token = await getAdminToken();
+
+  const res = await fetch("/api/admin/profesionales", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(
+      text || "No se pudo crear el profesional en la base de datos"
+    );
+  }
+
+  return res.json();
+}
+
+async function updateProfesionalRequest(params: {
+  id: string;
+  data: ProfesionalFormState;
+}): Promise<Profesional> {
+  const token = await getAdminToken();
+
+  const res = await fetch(`/api/admin/profesionales/${params.id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(params.data),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(
+      text || "No se pudo actualizar el profesional en la base de datos"
+    );
+  }
+
+  return res.json();
+}
+
+// ───────────────────────────────
+// Page
+// ───────────────────────────────
+
 export default function AdminMatriculacion() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const [profesionales, setProfesionales] =
-    useState<Profesional[]>(MOCK_PROFESIONALES);
+  // Listado desde API (por ahora vendrá vacío y está bien)
+  const {
+    data: profesionales = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["admin-profesionales"],
+    queryFn: fetchProfesionales,
+  });
 
+  // Mutaciones
+  const createProfesional = useMutation({
+    mutationFn: createProfesionalRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-profesionales"] });
+      toast({
+        title: "Profesional creado",
+        description:
+          "El profesional se registró correctamente en el padrón interno.",
+      });
+    },
+    onError: (err: unknown) => {
+      toast({
+        title: "Error al crear profesional",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Ocurrió un error al guardar en la base de datos.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateProfesional = useMutation({
+    mutationFn: updateProfesionalRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-profesionales"] });
+      toast({
+        title: "Profesional actualizado",
+        description: "Los datos del profesional fueron modificados.",
+      });
+    },
+    onError: (err: unknown) => {
+      toast({
+        title: "Error al actualizar profesional",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Ocurrió un error al guardar en la base de datos.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Filtros / formulario
   const [searchTerm, setSearchTerm] = useState("");
   const [estadoFilter, setEstadoFilter] =
     useState<ProfesionalEstadoMatricula | "todos">("todos");
@@ -203,42 +304,36 @@ export default function AdminMatriculacion() {
       }));
     };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // TODO: reemplazar por llamada a API (create / update)
-    if (formMode === "create") {
-      const newProfesional: Profesional = {
-        id: crypto.randomUUID(),
-        fechaAlta: new Date().toISOString(),
-        ...formState,
-        ultimoPeriodoPago: formState.ultimoPeriodoPago || undefined,
-        notasInternas: formState.notasInternas || undefined,
-      };
-      setProfesionales((prev) => [...prev, newProfesional]);
+    if (!formState.matricula || !formState.apellido || !formState.nombre) {
       toast({
-        title: "Profesional creado",
+        title: "Campos obligatorios faltantes",
         description:
-          "El profesional se registró correctamente en el padrón interno.",
+          "Matrícula, apellido y nombre son obligatorios para registrar un profesional.",
+        variant: "destructive",
       });
+      return;
+    }
+
+    const payload: ProfesionalFormState = {
+      ...formState,
+      ultimoPeriodoPago: formState.ultimoPeriodoPago || "",
+      notasInternas: formState.notasInternas || "",
+      otrasEspecialidades: formState.otrasEspecialidades || "",
+      institucion: formState.institucion || "",
+      localidad: formState.localidad || "",
+      provincia: formState.provincia || "",
+      email: formState.email || "",
+      telefono: formState.telefono || "",
+      cvPdfUrl: formState.cvPdfUrl || "",
+    };
+
+    if (formMode === "create") {
+      await createProfesional.mutateAsync(payload);
     } else if (formMode === "edit" && editingId) {
-      setProfesionales((prev) =>
-        prev.map((p) =>
-          p.id === editingId
-            ? {
-                ...p,
-                ...formState,
-                ultimoPeriodoPago: formState.ultimoPeriodoPago || undefined,
-                notasInternas: formState.notasInternas || undefined,
-                fechaActualizacion: new Date().toISOString(),
-              }
-            : p
-        )
-      );
-      toast({
-        title: "Profesional actualizado",
-        description: "Los datos del profesional fueron modificados.",
-      });
+      await updateProfesional.mutateAsync({ id: editingId, data: payload });
     }
 
     setDialogOpen(false);
@@ -252,9 +347,9 @@ export default function AdminMatriculacion() {
             Matriculación y padrón
           </h1>
           <p className="text-muted-foreground mt-1">
-            Gestión interna de profesionales matriculados. Desde aquí se controla
-            el padrón público, el estado de matrícula y la relación con deudas y
-            facturación.
+            Gestión interna de profesionales matriculados. Desde aquí se
+            controla el padrón público, el estado de matrícula y la relación con
+            deudas y facturación.
           </p>
         </div>
         <Button onClick={openCreateDialog} size="lg">
@@ -310,6 +405,19 @@ export default function AdminMatriculacion() {
           </Button>
         </div>
       </div>
+
+      {/* Estado de carga / error */}
+      {isLoading && (
+        <p className="text-sm text-muted-foreground mb-4">
+          Cargando profesionales…
+        </p>
+      )}
+      {isError && (
+        <p className="text-sm text-red-500 mb-4">
+          {(error as Error)?.message ||
+            "No se pudieron cargar los profesionales."}
+        </p>
+      )}
 
       {/* Tabla/Grilla */}
       <Card className="border-border">
@@ -400,7 +508,7 @@ export default function AdminMatriculacion() {
                   </tr>
                 ))}
 
-                {filteredProfesionales.length === 0 && (
+                {!isLoading && filteredProfesionales.length === 0 && (
                   <tr>
                     <td
                       colSpan={7}
@@ -637,9 +745,18 @@ export default function AdminMatriculacion() {
               >
                 Cancelar
               </Button>
-              <Button type="submit">
+              <Button
+                type="submit"
+                disabled={
+                  createProfesional.isPending || updateProfesional.isPending
+                }
+              >
                 {formMode === "create"
-                  ? "Crear profesional"
+                  ? createProfesional.isPending
+                    ? "Creando…"
+                    : "Crear profesional"
+                  : updateProfesional.isPending
+                  ? "Guardando…"
                   : "Guardar cambios"}
               </Button>
             </div>

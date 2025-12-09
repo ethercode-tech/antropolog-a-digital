@@ -63,12 +63,12 @@ const navEntries: NavEntry[] = [
         description: "Descargar facturas emitidas.",
         icon: Receipt,
       },
-      {
-        href: "/tramites/constancia",
-        label: "Constancias",
-        description: "Solicitar constancias oficiales.",
-        icon: Award,
-      },
+      // {
+      //   href: "/tramites/constancia",
+      //   label: "Constancias",
+      //   description: "Solicitar constancias oficiales.",
+      //   icon: Award,
+      // },
       {
         href: "/matriculados",
         label: "Padrón de matriculados",
