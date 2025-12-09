@@ -15,7 +15,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { mockAdminUsers } from "@/data/profesionalesData";
+import { mockAdminUsers } from "@/lib/dataAdapter";
+
 
 export default function AdminUsuarios() {
   const { toast } = useToast();

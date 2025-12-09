@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import { mockGalleryImages } from "@/data/mockData";
+import { mockGalleryImages } from "@/lib/dataAdapter";
 
 export default function Galeria() {
   const [selectedImage, setSelectedImage] = useState<typeof mockGalleryImages[0] | null>(null);

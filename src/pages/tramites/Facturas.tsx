@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { getProfesionalByDniMatricula, getFacturasByProfesional } from "@/data/profesionalesData";
+import { getProfesionalByDniMatricula, getFacturasByProfesional } from "@/lib/dataAdapter";
 
 export default function Facturas() {
   const { toast } = useToast();

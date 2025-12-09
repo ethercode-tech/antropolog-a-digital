@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState,useEffect } from "react";
 import { Search, User, Briefcase, MapPin, Clipboard, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+
+import { getProfesionales } from "@/lib/dataAdapter";
 
 type TipoProfesional = "Licenciado" | "Técnico / Otro";
 
@@ -29,34 +31,35 @@ type Profesional = {
   telefono?: string;
   cvPdfUrl?: string;
 };
-
-const MOCK_PROFESIONALES: Profesional[] = [
-  {
-    id: "1",
-    nombre: "María López",
-    matricula: "ANT-00123",
-    tipo: "Licenciado",
-    especialidad: "Antropología Social",
-    lugarTrabajo: "San Salvador de Jujuy",
-    estadoMatricula: "Activa",
-    email: "maria.lopez@example.com",
-    telefono: "+54 9 388 555 0101",
-    cvPdfUrl: "https://ejemplo.com/cv/maria-lopez.pdf",
-  },
-  {
-    id: "2",
-    nombre: "Juan Pérez",
-    matricula: "ANT-00124",
-    tipo: "Técnico / Otro",
-    especialidad: "Gestión Cultural",
-    lugarTrabajo: "Palpalá",
-    estadoMatricula: "En revisión",
-    email: "juan.perez@example.com",
-  },
-  // TODO: reemplazar MOCK_PROFESIONALES por datos reales desde la base de datos
-];
+// Mock de PROFESIONALES COMENTADO 
+// const MOCK_PROFESIONALES: Profesional[] = [
+//   {
+//     id: "1",
+//     nombre: "María López",
+//     matricula: "ANT-00123",
+//     tipo: "Licenciado",
+//     especialidad: "Antropología Social",
+//     lugarTrabajo: "San Salvador de Jujuy",
+//     estadoMatricula: "Activa",
+//     email: "maria.lopez@example.com",
+//     telefono: "+54 9 388 555 0101",
+//     cvPdfUrl: "https://ejemplo.com/cv/maria-lopez.pdf",
+//   },
+//   {
+//     id: "2",
+//     nombre: "Juan Pérez",
+//     matricula: "ANT-00124",
+//     tipo: "Técnico / Otro",
+//     especialidad: "Gestión Cultural",
+//     lugarTrabajo: "Palpalá",
+//     estadoMatricula: "En revisión",
+//     email: "juan.perez@example.com",
+//   },
+//   // TODO: reemplazar MOCK_PROFESIONALES por datos reales desde la base de datos
+// ];
 
 export default function MatriculadosPage() {
+  const [profesionales, setProfesionales] = useState<Profesional[]>([]);
   const { toast } = useToast();
 
   const [searchNombre, setSearchNombre] = useState("");
@@ -67,8 +70,15 @@ export default function MatriculadosPage() {
   );
   const [selected, setSelected] = useState<Profesional | null>(null);
 
+
+  useEffect(() => {
+    getProfesionales().then((profesionales) => {
+      setProfesionales(profesionales);
+    });
+  }, []);
+
   const profesionalesFiltrados = useMemo(() => {
-    return MOCK_PROFESIONALES.filter((p) => {
+    return profesionales.filter((p) => {
       const matchTipo =
         tipoFilter === "Todos" ? true : p.tipo === tipoFilter;
 
@@ -86,7 +96,7 @@ export default function MatriculadosPage() {
 
       return matchTipo && matchNombre && matchEspecialidad && matchLugar;
     });
-  }, [tipoFilter, searchNombre, searchEspecialidad, searchLugar]);
+  }, [profesionales, tipoFilter, searchNombre, searchEspecialidad, searchLugar]);
 
   const handleCopy = async (profesional: Profesional) => {
     const lines = [

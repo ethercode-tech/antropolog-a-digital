@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { mockDeudas, mockProfesionales } from "@/data/profesionalesData";
+import { mockDeudas, mockProfesionales } from "@/lib/dataAdapter";
 
 export default function AdminDeudas() {
   const { toast } = useToast();
