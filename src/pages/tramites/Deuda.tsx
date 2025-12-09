@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { getProfesionalByDniMatricula, getDeudasByProfesional, EstadoDeuda } from "@/data/profesionalesData";
+import { getProfesionalByDniMatricula, getDeudasByProfesional, EstadoDeuda } from "@/lib/dataAdapter";
 
 export default function Deuda() {
   const { toast } = useToast();

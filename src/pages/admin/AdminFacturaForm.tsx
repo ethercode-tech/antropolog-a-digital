@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { mockFacturas, mockProfesionales } from "@/data/profesionalesData";
+import { mockFacturas, mockProfesionales } from "@/lib/dataAdapter";
 
 export default function AdminFacturaForm() {
   const { id } = useParams();

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { mockMatriculacionSolicitudes, EstadoSolicitud } from "@/data/profesionalesData";
+import { mockMatriculacionSolicitudes, EstadoSolicitud } from "@/lib/dataAdapter";
 
 const estadoLabels: Record<EstadoSolicitud, string> = {
   pendiente: "Pendiente",

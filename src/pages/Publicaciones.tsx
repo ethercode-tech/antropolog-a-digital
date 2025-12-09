@@ -1,7 +1,7 @@
 import { FileText, Calendar, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { mockDocuments } from "@/data/mockData";
+import { mockDocuments } from "@/lib/dataAdapter";
 
 export default function Publicaciones() {
   const formatDate = (dateString: string) => {

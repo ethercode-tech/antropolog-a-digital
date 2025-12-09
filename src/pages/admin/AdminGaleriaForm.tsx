@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { mockGalleryImages } from "@/data/mockData";
+import { mockGalleryImages } from "@/lib/dataAdapter";
 
 export default function AdminGaleriaForm() {
   const { id } = useParams<{ id: string }>();

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { getMatriculacionByDni, EstadoSolicitud } from "@/data/profesionalesData";
+import { getMatriculacionByDni, EstadoSolicitud } from "@/lib/dataAdapter";
 
 const estadoIcons: Record<EstadoSolicitud, React.ReactNode> = {
   pendiente: <Clock className="w-6 h-6 text-yellow-500" />,

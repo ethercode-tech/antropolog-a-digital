@@ -11,7 +11,7 @@ import {
   Receipt,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { mockNews, mockDocuments, mockGalleryImages } from "@/data/mockData";
+import { mockNews, mockDocuments, mockGalleryImages } from "@/lib/dataAdapter";
 
 type StatCardConfig = {
   label: string;

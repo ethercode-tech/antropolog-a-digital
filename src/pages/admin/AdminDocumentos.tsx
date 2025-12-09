@@ -14,7 +14,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { mockDocuments, Document } from "@/data/mockData";
+import { mockDocuments } from "@/lib/dataAdapter";
+import type { DocumentT as Document } from "@/lib/dataAdapter";
 
 export default function AdminDocumentos() {
   const { toast } = useToast();

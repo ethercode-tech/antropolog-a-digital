@@ -1,8 +1,18 @@
 import { Link } from "react-router-dom";
 import { BookOpen, Mail, Phone, MapPin } from "lucide-react";
-import { usefulLinks } from "@/data/mockData";
+// import { usefulLinks } from "@/data/mockData";
+import { getUsefulLinks } from "@/lib/dataAdapter";
+import { useEffect, useState } from "react";
 
 export function Footer() {
+  const [usefulLinks, setUsefulLinks] = useState<{title:string,url:string}[]>([]);
+
+  useEffect(() => {
+    getUsefulLinks().then((links) => {
+      setUsefulLinks(links);
+    });
+  }, []);
+  
   return (
     <footer className="bg-foreground text-primary-foreground">
       <div className="container-main py-12 md:py-16">

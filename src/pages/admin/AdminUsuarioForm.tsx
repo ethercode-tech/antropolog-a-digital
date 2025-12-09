@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { mockAdminUsers } from "@/data/profesionalesData";
+import { mockAdminUsers } from "@/lib/dataAdapter";
 
 export default function AdminUsuarioForm() {
   const { id } = useParams();

@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { NewsCard } from "@/components/ui/NewsCard";
-import { mockNews } from "@/data/mockData";
+import { mockNews } from "@/lib/dataAdapter";
 
 const professionalShortcuts = [
   {
