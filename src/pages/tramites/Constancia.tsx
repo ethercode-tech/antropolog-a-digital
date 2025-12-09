@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { getProfesionalByDniMatricula, getConstanciaByProfesional, EstadoSolicitud } from "@/data/profesionalesData";
+import { getProfesionalByDniMatricula, getConstanciaByProfesional, EstadoSolicitud } from "@/lib/dataAdapter";
 
 const estadoLabels: Record<EstadoSolicitud, string> = {
   pendiente: "Pendiente de Aprobación",

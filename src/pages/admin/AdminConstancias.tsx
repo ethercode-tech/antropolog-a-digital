@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { mockConstanciaSolicitudes, mockProfesionales, EstadoSolicitud } from "@/data/profesionalesData";
+import { mockConstanciaSolicitudes, mockProfesionales, EstadoSolicitud } from "@/lib/dataAdapter";
 
 const estadoLabels: Record<EstadoSolicitud, string> = {
   pendiente: "Pendiente",

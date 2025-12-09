@@ -32,22 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import type { EstadoSolicitud } from "@/data/profesionalesData";
-
-type MatriculacionSolicitud = {
-  id: string;
-  dni: string;
-  nombre: string;
-  email: string;
-  telefono: string;
-  especialidad: string;
-  estado: EstadoSolicitud;
-  observaciones: string | null;
-  numeroMatriculaAsignado: string | null;
-  documentos: { url: string; nombre?: string; tipo?: string }[] | null;
-  creadoEn: string;
-};
+import { mockMatriculacionSolicitudes, EstadoSolicitud } from "@/lib/dataAdapter";
 
 const estadoLabels: Record<EstadoSolicitud, string> = {
   pendiente: "Pendiente",

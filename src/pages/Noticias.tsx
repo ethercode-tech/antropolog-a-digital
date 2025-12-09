@@ -1,5 +1,5 @@
 import { NewsCard } from "@/components/ui/NewsCard";
-import { mockNews } from "@/data/mockData";
+import { mockNews } from "@/lib/dataAdapter";
 
 export default function Noticias() {
   return (

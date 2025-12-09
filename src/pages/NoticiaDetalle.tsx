@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { mockNews } from "@/data/mockData";
+import { mockNews } from "@/lib/dataAdapter";
 
 export default function NoticiaDetalle() {
   const { id } = useParams<{ id: string }>();
