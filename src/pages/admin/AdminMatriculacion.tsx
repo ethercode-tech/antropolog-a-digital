@@ -52,14 +52,15 @@ async function getAdminToken() {
   const {
     data: { session },
   } = await supabase.auth.getSession();
+  console.log('session', session);
   if (!session) throw new Error("No hay sesión de administrador");
   return session.access_token;
 }
 
 async function fetchProfesionales(): Promise<Profesional[]> {
   const token = await getAdminToken();
-
-  const res = await fetch("/api/admin/profesionales", {
+  const URL = import.meta.env.VITE_API_BASE_URL ?? ""
+  const res = await fetch(`${URL}/api/admin/profesionales`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },

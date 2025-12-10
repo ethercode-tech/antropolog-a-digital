@@ -2,9 +2,26 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { supabaseAdmin } from "../_supabaseAdmin";
 import type { Profesional } from "../../src/lib/types/profesionales";
 
+// ─────────────────────────────────────
+// CORS
+// ─────────────────────────────────────
+
+function setCors(res: VercelResponse) {
+  // Mientras estés probando desde localhost, esto te sirve.
+  // Si después querés algo más estricto, cambiás el "*".
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, x-admin-token"
+  );
+}
+
+// ─────────────────────────────────────
+// Auth burda para POST (solo dev)
+// ─────────────────────────────────────
 
 function assertAdmin(req: VercelRequest) {
-  // Ejemplo burdo: header interno, SOLO para desarrollo
   const token = req.headers["x-admin-token"];
   if (!token || token !== process.env.ADMIN_INTERNAL_TOKEN) {
     const error: any = new Error("Unauthorized");
@@ -13,10 +30,49 @@ function assertAdmin(req: VercelRequest) {
   }
 }
 
+// Helper para mapear registro de DB (snake_case) a tipo del front (camelCase)
+function mapProfesionalRow(row: any): Profesional {
+  return {
+    id: row.id,
+    matricula: row.matricula,
+    apellido: row.apellido,
+    nombre: row.nombre,
+    tipo: row.tipo,
+    especialidadPrincipal: row.especialidad_principal,
+    otrasEspecialidades: row.otras_especialidades,
+    lugarTrabajo: row.lugar_trabajo,
+    institucion: row.institucion,
+    localidad: row.localidad,
+    provincia: row.provincia,
+    email: row.email,
+    telefono: row.telefono,
+    estadoMatricula: row.estado_matricula,
+    habilitadoEjercer: row.habilitado_ejercer,
+    tieneDeuda: row.tiene_deuda,
+    ultimoPeriodoPago: row.ultimo_periodo_pago,
+    cvPdfUrl: row.cv_pdf_url,
+    notasInternas: row.notas_internas,
+    fechaAlta: row.fecha_alta,
+    fechaActualizacion: row.fecha_actualizacion
+  };
+}
+
+// ─────────────────────────────────────
+// Handler principal
+// ─────────────────────────────────────
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Siempre setear CORS
+  setCors(res);
+
+  // Preflight CORS
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   try {
+    // ─────────────── GET /api/admin/profesionales ───────────────
     if (req.method === "GET") {
-      // filtros simples opcionales
       const search = String(req.query.search || "").toLowerCase();
       const estado = req.query.estado as string | undefined;
 
@@ -32,7 +88,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { data, error } = await query;
 
       if (error) {
-        console.error(error);
+        console.error("[GET /api/admin/profesionales] DB_ERROR", error);
         return res.status(500).json({ error: "DB_ERROR" });
       }
 
@@ -47,9 +103,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               );
             });
 
-      return res.status(200).json(filtered);
+      const mapped = (filtered ?? []).map(mapProfesionalRow);
+
+      return res.status(200).json(mapped);
     }
 
+    // ─────────────── POST /api/admin/profesionales ───────────────
     if (req.method === "POST") {
       assertAdmin(req);
 
@@ -87,17 +146,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .single();
 
       if (error) {
-        console.error(error);
+        console.error("[POST /api/admin/profesionales] DB_ERROR", error);
         return res.status(500).json({ error: "DB_ERROR" });
       }
 
-      return res.status(201).json(data);
+      const mapped = mapProfesionalRow(data);
+      return res.status(201).json(mapped);
     }
 
-    res.setHeader("Allow", "GET,POST");
+    // Métodos no permitidos
+    res.setHeader("Allow", "GET,POST,OPTIONS");
     return res.status(405).json({ error: "METHOD_NOT_ALLOWED" });
   } catch (err: any) {
-    console.error(err);
+    console.error("[/api/admin/profesionales] UNHANDLED", err);
     const status = err.statusCode || 500;
     return res.status(status).json({ error: err.message || "UNKNOWN_ERROR" });
   }
