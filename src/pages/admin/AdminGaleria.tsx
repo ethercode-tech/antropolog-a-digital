@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { mockGalleryImages, GalleryImage } from "@/data/mockData";
+import { mockGalleryImages, GalleryImage } from "@/lib/dataAdapter";
 
 const MAX_IMAGES = 30;
 

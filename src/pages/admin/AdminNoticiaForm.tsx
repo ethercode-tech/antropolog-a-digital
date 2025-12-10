@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { mockNews } from "@/data/mockData";
+import { mockNews } from "@/lib/dataAdapter";
 
 export default function AdminNoticiaForm() {
   const { id } = useParams<{ id: string }>();
