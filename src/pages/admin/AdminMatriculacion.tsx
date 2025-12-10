@@ -1,3 +1,4 @@
+// src/pages/admin/AdminMatriculacion.tsx
 import { useMemo, useState } from "react";
 import {
   Search,
@@ -47,83 +48,116 @@ type ProfesionalFormState = Omit<
 };
 
 // ───────────────────────────────
-// Helpers para llamar al BFF admin
+// Mappers Supabase ↔ tipos front
 // ───────────────────────────────
 
-async function getAdminToken() {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  console.log('session', session);
-  if (!session) throw new Error("No hay sesión de administrador");
-  return session.access_token;
+function mapRowToProfesional(row: any): Profesional {
+  return {
+    id: row.id,
+    matricula: row.matricula,
+    apellido: row.apellido,
+    nombre: row.nombre,
+    tipo: row.tipo as ProfesionalTipo,
+    especialidadPrincipal: row.especialidad_principal,
+    otrasEspecialidades: row.otras_especialidades || "",
+    lugarTrabajo: row.lugar_trabajo || "",
+    institucion: row.institucion || "",
+    localidad: row.localidad || "",
+    provincia: row.provincia || "",
+    email: row.email || "",
+    telefono: row.telefono || "",
+    estadoMatricula: row.estado_matricula as ProfesionalEstadoMatricula,
+    habilitadoEjercer: row.habilitado_ejercer,
+    tieneDeuda: row.tiene_deuda,
+    ultimoPeriodoPago: row.ultimo_periodo_pago || "",
+    cvPdfUrl: row.cv_pdf_url || "",
+    notasInternas: row.notas_internas || "",
+    fechaAlta: row.fecha_alta,
+    fechaActualizacion: row.fecha_actualizacion,
+    solicitudMatriculacionId: row.solicitud_matriculacion_id ?? null,
+  };
 }
 
-async function fetchProfesionales(): Promise<Profesional[]> {
-  const token = await getAdminToken();
-  const URL = import.meta.env.VITE_API_BASE_URL ?? ""
-  const res = await fetch(`${URL}/api/admin/profesionales`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+function mapFormToDbPayload(form: ProfesionalFormState) {
+  return {
+    matricula: form.matricula,
+    apellido: form.apellido,
+    nombre: form.nombre,
+    tipo: form.tipo,
+    especialidad_principal: form.especialidadPrincipal,
+    otras_especialidades: form.otrasEspecialidades || null,
+    lugar_trabajo: form.lugarTrabajo || null,
+    institucion: form.institucion || null,
+    localidad: form.localidad || null,
+    provincia: form.provincia || null,
+    email: form.email || null,
+    telefono: form.telefono || null,
+    estado_matricula: form.estadoMatricula,
+    habilitado_ejercer: form.habilitadoEjercer,
+    tiene_deuda: form.tieneDeuda,
+    ultimo_periodo_pago: form.ultimoPeriodoPago || null,
+    cv_pdf_url: form.cvPdfUrl || null,
+    notas_internas: form.notasInternas || null,
+    solicitud_matriculacion_id: form.solicitudMatriculacionId || null,
+  };
+}
 
-  if (!res.ok) {
+// ───────────────────────────────
+// Data access directo a Supabase
+// ───────────────────────────────
+
+async function fetchProfesionales(): Promise<Profesional[]> {
+  const { data, error } = await supabase
+    .from("profesionales")
+    .select("*")
+    .order("apellido", { ascending: true });
+
+  if (error) {
+    console.error("[AdminMatriculacion] Error fetchProfesionales:", error);
     throw new Error("No se pudieron cargar los profesionales");
   }
 
-  const data = await res.json();
-  // Aseguramos array aunque venga null/undefined
-  return Array.isArray(data) ? data : [];
+  return (data ?? []).map(mapRowToProfesional);
 }
 
 async function createProfesionalRequest(
   payload: ProfesionalFormState
 ): Promise<Profesional> {
-  const token = await getAdminToken();
+  const dbPayload = mapFormToDbPayload(payload);
 
-  const res = await fetch("/api/admin/profesionales", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  const { data, error } = await supabase
+    .from("profesionales")
+    .insert(dbPayload)
+    .select("*")
+    .single();
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(
-      text || "No se pudo crear el profesional en la base de datos"
-    );
+  if (error) {
+    console.error("[AdminMatriculacion] Error createProfesional:", error);
+    throw new Error("No se pudo crear el profesional en la base de datos");
   }
 
-  return res.json();
+  return mapRowToProfesional(data);
 }
 
 async function updateProfesionalRequest(params: {
   id: string;
   data: ProfesionalFormState;
 }): Promise<Profesional> {
-  const token = await getAdminToken();
+  const dbPayload = mapFormToDbPayload(params.data);
 
-  const res = await fetch(`/api/admin/profesionales/${params.id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(params.data),
-  });
+  const { data, error } = await supabase
+    .from("profesionales")
+    .update(dbPayload)
+    .eq("id", params.id)
+    .select("*")
+    .single();
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(
-      text || "No se pudo actualizar el profesional en la base de datos"
-    );
+  if (error) {
+    console.error("[AdminMatriculacion] Error updateProfesional:", error);
+    throw new Error("No se pudo actualizar el profesional en la base de datos");
   }
 
-  return res.json();
+  return mapRowToProfesional(data);
 }
 
 // ───────────────────────────────
@@ -134,7 +168,6 @@ export default function AdminMatriculacion() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Listado desde API (por ahora vendrá vacío y está bien)
   const {
     data: profesionales = [],
     isLoading,
@@ -145,7 +178,6 @@ export default function AdminMatriculacion() {
     queryFn: fetchProfesionales,
   });
 
-  // Mutaciones
   const createProfesional = useMutation({
     mutationFn: createProfesionalRequest,
     onSuccess: () => {
@@ -280,6 +312,7 @@ export default function AdminMatriculacion() {
       telefono: rest.telefono ?? "",
       cvPdfUrl: rest.cvPdfUrl ?? "",
       notasInternas: rest.notasInternas ?? "",
+      solicitudMatriculacionId: rest.solicitudMatriculacionId ?? null,
     });
     setEditingId(id);
     setFormMode("edit");
@@ -333,6 +366,8 @@ export default function AdminMatriculacion() {
       email: formState.email || "",
       telefono: formState.telefono || "",
       cvPdfUrl: formState.cvPdfUrl || "",
+      solicitudMatriculacionId:
+        formState.solicitudMatriculacionId || null,
     };
 
     if (formMode === "create") {

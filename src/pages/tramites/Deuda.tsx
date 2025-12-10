@@ -1,54 +1,95 @@
 import { useState } from "react";
-import { Search, DollarSign, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import {
+  Search,
+  DollarSign,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { getProfesionalByDniMatricula, getDeudasByProfesional, Deuda as DeudaType, ProfesionalPublico } from "@/lib/dataAdapter";
+import {
+  getProfesionalByDniMatricula,
+  getDeudasByProfesional,
+  Deuda as DeudaType,
+  ProfesionalPublico,
+} from "@/lib/dataAdapter";
 
 export default function Deuda() {
   const { toast } = useToast();
   const [dni, setDni] = useState("");
   const [matricula, setMatricula] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [result, setResult] = useState<{ profesional: ProfesionalPublico; deudas: DeudaType[] } | "not_found" | null>(null);
+  const [result, setResult] = useState<
+    { profesional: ProfesionalPublico; deudas: DeudaType[] } | "not_found" | null
+  >(null);
 
   const handleConsulta = async () => {
-    if (!dni || !matricula) {
+    if (!matricula) {
       toast({
         title: "Datos incompletos",
-        description: "Por favor ingrese su DNI y matrícula",
-        variant: "destructive"
+        description: "Por favor ingrese matrícula",
+        variant: "destructive",
       });
       return;
     }
 
     setIsSearching(true);
-    
-    const profesional = await getProfesionalByDniMatricula(dni, matricula);
-    
-    if (profesional) {
-      const deudas = await getDeudasByProfesional(profesional.id);
-      setResult({ profesional, deudas });
-    } else {
-      setResult("not_found");
+
+    try {
+      const profesional = await getProfesionalByDniMatricula(dni, matricula);
+
+      if (profesional) {
+        const deudas = await getDeudasByProfesional(profesional.id);
+        setResult({ profesional, deudas });
+      } else {
+        setResult("not_found");
+      }
+    } catch (err) {
+      console.error("[Deuda] error consulta:", err);
+      toast({
+        title: "Error al consultar",
+        description: "Intente nuevamente en unos minutos",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
     }
-    
-    setIsSearching(false);
   };
 
   const formatMes = (mes: string) => {
     const [year, month] = mes.split("-");
     const date = new Date(parseInt(year), parseInt(month) - 1);
-    return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
+    return date.toLocaleDateString("es-ES", {
+      year: "numeric",
+      month: "long",
+    });
   };
 
-  const totalDeuda = result && result !== "not_found" 
-    ? result.deudas.filter((d) => d.estado === "pendiente").reduce((acc, d) => acc + d.monto, 0)
-    : 0;
+  const totalDeuda =
+    result && result !== "not_found"
+      ? result.deudas
+          .filter((d) => d.estado === "pendiente")
+          .reduce((acc, d) => acc + d.monto, 0)
+      : 0;
 
   return (
     <div className="animate-fade-in">
@@ -75,15 +116,6 @@ export default function Deuda() {
             <CardContent>
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="dni">DNI</Label>
-                  <Input
-                    id="dni"
-                    placeholder="12345678"
-                    value={dni}
-                    onChange={(e) => setDni(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="matricula">Matrícula</Label>
                   <Input
                     id="matricula"
@@ -93,7 +125,11 @@ export default function Deuda() {
                   />
                 </div>
                 <div className="flex items-end">
-                  <Button onClick={handleConsulta} disabled={isSearching} className="w-full">
+                  <Button
+                    onClick={handleConsulta}
+                    disabled={isSearching}
+                    className="w-full"
+                  >
                     <Search className="w-4 h-4 mr-2" />
                     {isSearching ? "Buscando..." : "Consultar"}
                   </Button>
@@ -109,7 +145,9 @@ export default function Deuda() {
                 <Card>
                   <CardContent className="p-6 text-center">
                     <DollarSign className="w-8 h-8 text-primary mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Total Pendiente</p>
+                    <p className="text-sm text-muted-foreground">
+                      Total Pendiente
+                    </p>
                     <p className="text-2xl font-bold text-primary">
                       ${totalDeuda.toLocaleString()}
                     </p>
@@ -118,18 +156,29 @@ export default function Deuda() {
                 <Card>
                   <CardContent className="p-6 text-center">
                     <Clock className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Cuotas Pendientes</p>
+                    <p className="text-sm text-muted-foreground">
+                      Cuotas Pendientes
+                    </p>
                     <p className="text-2xl font-bold">
-                      {result.deudas.filter((d) => d.estado === "pendiente").length}
+                      {
+                        result.deudas.filter(
+                          (d) => d.estado === "pendiente"
+                        ).length
+                      }
                     </p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-6 text-center">
                     <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">Cuotas Pagadas</p>
+                    <p className="text-sm text-muted-foreground">
+                      Cuotas Pagadas
+                    </p>
                     <p className="text-2xl font-bold">
-                      {result.deudas.filter((d) => d.estado === "pagado").length}
+                      {
+                        result.deudas.filter((d) => d.estado === "pagado")
+                          .length
+                      }
                     </p>
                   </CardContent>
                 </Card>
@@ -140,7 +189,8 @@ export default function Deuda() {
                 <CardHeader>
                   <CardTitle className="font-serif">Detalle de Cuotas</CardTitle>
                   <CardDescription>
-                    {result.profesional.nombre} - Matrícula: {result.profesional.matricula}
+                    {result.profesional.nombre} - Matrícula:{" "}
+                    {result.profesional.matricula}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -161,15 +211,20 @@ export default function Deuda() {
                               {formatMes(deuda.periodo)}
                             </TableCell>
                             <TableCell>{deuda.concepto}</TableCell>
-                            <TableCell>${deuda.monto.toLocaleString()}</TableCell>
                             <TableCell>
-                              <Badge 
-                                className={deuda.estado === "pagado" 
-                                  ? "bg-green-100 text-green-800" 
-                                  : "bg-yellow-100 text-yellow-800"
+                              ${deuda.monto.toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                className={
+                                  deuda.estado === "pagado"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-yellow-100 text-yellow-800"
                                 }
                               >
-                                {deuda.estado === "pagado" ? "Pagado" : "Pendiente"}
+                                {deuda.estado === "pagado"
+                                  ? "Pagado"
+                                  : "Pendiente"}
                               </Badge>
                             </TableCell>
                           </TableRow>
@@ -188,7 +243,8 @@ export default function Deuda() {
                 <Card className="bg-primary/5 border-primary/20">
                   <CardContent className="p-6 text-center">
                     <p className="text-muted-foreground mb-2">
-                      Para regularizar su situación, comuníquese con la administración del Colegio.
+                      Para regularizar su situación, comuníquese con la
+                      administración del Colegio.
                     </p>
                     <Button>Contactar Administración</Button>
                   </CardContent>
@@ -201,9 +257,11 @@ export default function Deuda() {
             <Card>
               <CardContent className="p-12 text-center">
                 <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-lg font-medium mb-2">No se encontraron datos</p>
+                <p className="text-lg font-medium mb-2">
+                  No se encontraron datos
+                </p>
                 <p className="text-muted-foreground">
-                  Verifique que el DNI y la matrícula ingresados sean correctos
+                  Verifique que la matrícula ingresada sea correcta
                 </p>
               </CardContent>
             </Card>

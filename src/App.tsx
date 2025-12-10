@@ -40,6 +40,7 @@ import Matriculacion from "./pages/tramites/Matriculacion";
 import AdminFacturas from "./pages/admin/AdminFacturas";
 import AdminDeudas from "./pages/admin/AdminDeudas";
 import AdminFacturaForm from "./pages/admin/AdminFacturaForm";
+import AdminDeudaForm from "./pages/admin/AdminDeudaForm";
 // import AdminUsuarios from "./pages/admin/AdminUsuarios";
 // import AdminUsuarioForm from "./pages/admin/AdminUsuarioForm";
 
@@ -90,6 +91,7 @@ const App = () => (
             {/* <Route path="usuarios" element={<AdminUsuarios />} />
             <Route path="usuarios/nuevo" element={<AdminUsuarioForm />} /> */}
             <Route path="deudas" element={<AdminDeudas />} />
+            <Route path="deudas/nueva" element={<AdminDeudaForm />} />
           </Route>
 
           {/* 404 */}
