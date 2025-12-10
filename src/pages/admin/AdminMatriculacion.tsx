@@ -49,6 +49,31 @@ type ProfesionalFormState = Omit<
 };
 
 // ───────────────────────────────
+// Tipos para solicitudes de matriculación
+// ───────────────────────────────
+
+type SolicitudEstado =
+  | "pendiente"
+  | "en_revision"
+  | "observado"
+  | "aprobado"
+  | "rechazado";
+
+type SolicitudMatriculacion = {
+  id: string;
+  dni: string;
+  nombre: string;
+  email: string;
+  telefono: string;
+  especialidad: string;
+  estado: SolicitudEstado;
+  observaciones: string | null;
+  numeroMatriculaAsignado: string | null;
+  profesionalId: string | null;
+  creadoEn: string;
+};
+
+// ───────────────────────────────
 // Mappers Supabase ↔ tipos front
 // ───────────────────────────────
 
@@ -121,6 +146,32 @@ async function fetchProfesionales(): Promise<Profesional[]> {
   return (data ?? []).map(mapRowToProfesional);
 }
 
+async function fetchSolicitudesMatriculacion(): Promise<SolicitudMatriculacion[]> {
+  const { data, error } = await supabase
+    .from("profesional_matriculacion_solicitudes")
+    .select("*")
+    .order("creado_en", { ascending: false });
+
+  if (error) {
+    console.error("[AdminMatriculacion] Error fetchSolicitudesMatriculacion:", error);
+    throw new Error("No se pudieron cargar las solicitudes de matriculación");
+  }
+
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    dni: row.dni,
+    nombre: row.nombre,
+    email: row.email,
+    telefono: row.telefono,
+    especialidad: row.especialidad,
+    estado: row.estado as SolicitudEstado,
+    observaciones: row.observaciones ?? null,
+    numeroMatriculaAsignado: row.numero_matricula_asignado ?? null,
+    profesionalId: row.profesional_id ?? null,
+    creadoEn: row.creado_en,
+  }));
+}
+
 async function createProfesionalRequest(
   payload: ProfesionalFormState
 ): Promise<Profesional> {
@@ -161,6 +212,34 @@ async function updateProfesionalRequest(params: {
   return mapRowToProfesional(data);
 }
 
+type SolicitudUpdatePayload = {
+  estado: SolicitudEstado;
+  numeroMatriculaAsignado?: string | null;
+  observaciones?: string | null;
+};
+
+async function updateSolicitudRequest(params: {
+  id: string;
+  data: SolicitudUpdatePayload;
+}): Promise<void> {
+  const { id, data } = params;
+
+  const { error } = await supabase
+    .from("profesional_matriculacion_solicitudes")
+    .update({
+      estado: data.estado,
+      numero_matricula_asignado: data.numeroMatriculaAsignado ?? null,
+      observaciones: data.observaciones ?? null,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("[AdminMatriculacion] Error updateSolicitud:", error);
+    throw new Error("No se pudo actualizar la solicitud de matriculación");
+  }
+}
+
+
 // ───────────────────────────────
 // Page
 // ───────────────────────────────
@@ -169,6 +248,7 @@ export default function AdminMatriculacion() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Profesionales
   const {
     data: profesionales = [],
     isLoading,
@@ -177,6 +257,17 @@ export default function AdminMatriculacion() {
   } = useQuery({
     queryKey: ["admin-profesionales"],
     queryFn: fetchProfesionales,
+  });
+
+  // Solicitudes de matriculación
+  const {
+    data: solicitudes = [],
+    isLoading: isLoadingSolicitudes,
+    isError: isErrorSolicitudes,
+    error: errorSolicitudes,
+  } = useQuery({
+    queryKey: ["admin-matriculacion-solicitudes"],
+    queryFn: fetchSolicitudesMatriculacion,
   });
 
   const createProfesional = useMutation({
@@ -232,6 +323,160 @@ export default function AdminMatriculacion() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formMode, setFormMode] = useState<FormMode>("create");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [solicitudDialogOpen, setSolicitudDialogOpen] = useState(false);
+  const [solicitudSeleccionada, setSolicitudSeleccionada] =
+    useState<SolicitudMatriculacion | null>(null);
+  const [solicitudForm, setSolicitudForm] = useState<{
+    numeroMatricula: string;
+    estado: SolicitudEstado;
+    observaciones: string;
+  }>({
+    numeroMatricula: "",
+    estado: "pendiente",
+    observaciones: "",
+  });
+
+  const updateSolicitud = useMutation({
+    mutationFn: (params: { id: string; data: SolicitudUpdatePayload }) =>
+      updateSolicitudRequest(params),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["admin-matriculacion-solicitudes"],
+      });
+      toast({
+        title: "Solicitud actualizada",
+        description: "El estado de la solicitud fue actualizado correctamente.",
+      });
+    },
+    onError: (err: unknown) => {
+      toast({
+        title: "Error al actualizar solicitud",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Ocurrió un error al guardar los cambios.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const openSolicitudDialog = (s: SolicitudMatriculacion) => {
+    setSolicitudSeleccionada(s);
+    setSolicitudForm({
+      numeroMatricula: s.numeroMatriculaAsignado || "",
+      estado: s.estado,
+      observaciones: s.observaciones || "",
+    });
+    setSolicitudDialogOpen(true);
+  };
+
+  const handleSolicitudChange =
+    (field: keyof typeof solicitudForm) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+      const value = e.target.value;
+      setSolicitudForm((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    };
+
+    const handleSolicitudSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!solicitudSeleccionada) return;
+    
+      // Regla de negocio: no se puede aprobar sin matrícula
+      if (
+        solicitudForm.estado === "aprobado" &&
+        !solicitudForm.numeroMatricula.trim()
+      ) {
+        toast({
+          title: "Matrícula requerida",
+          description:
+            "No podés marcar la solicitud como aprobada sin asignar una matrícula.",
+          variant: "destructive",
+        });
+        return;
+      }
+    
+      // Si se aprueba y todavía no hay profesional vinculado, lo creamos
+      if (
+        solicitudForm.estado === "aprobado" &&
+        !solicitudSeleccionada.profesionalId
+      ) {
+        // separar nombre completo en nombre / apellido de forma simple
+        const parts = solicitudSeleccionada.nombre.trim().split(" ");
+        const apellido =
+          parts.length > 1 ? parts[parts.length - 1] : "";
+        const nombre =
+          parts.length > 1 ? parts.slice(0, parts.length - 1).join(" ") : parts[0];
+    
+        const nuevoProfesionalPayload: ProfesionalFormState = {
+          matricula: solicitudForm.numeroMatricula.trim(),
+          apellido,
+          nombre,
+          tipo: "licenciado", // o lo que corresponda por defecto
+          especialidadPrincipal: solicitudSeleccionada.especialidad,
+          otrasEspecialidades: "",
+          lugarTrabajo: "",
+          institucion: "",
+          localidad: "",
+          provincia: "",
+          email: solicitudSeleccionada.email,
+          telefono: solicitudSeleccionada.telefono,
+          estadoMatricula: "activa",
+          habilitadoEjercer: true,
+          tieneDeuda: false,
+          ultimoPeriodoPago: "",
+          cvPdfUrl: "",
+          notasInternas: "",
+          solicitudMatriculacionId: solicitudSeleccionada.id,
+        };
+    
+        // 1) Creamos el profesional en la tabla general
+        const nuevoProfesional = await createProfesional.mutateAsync(
+          nuevoProfesionalPayload
+        );
+    
+        // 2) Vinculamos la solicitud con ese profesional
+        const { error: linkError } = await supabase
+          .from("profesional_matriculacion_solicitudes")
+          .update({ profesional_id: nuevoProfesional.id })
+          .eq("id", solicitudSeleccionada.id);
+    
+        if (linkError) {
+          console.error("[AdminMatriculacion] Error link solicitud→profesional:", linkError);
+          toast({
+            title: "Profesional creado, pero hubo un problema al vincular",
+            description:
+              "Revisá manualmente la solicitud, el profesional ya fue creado.",
+            variant: "destructive",
+          });
+        }
+      }
+    
+      // 3) Actualizamos el estado / observaciones / matrícula de la solicitud
+      await updateSolicitud.mutateAsync({
+        id: solicitudSeleccionada.id,
+        data: {
+          estado: solicitudForm.estado,
+          numeroMatriculaAsignado: solicitudForm.numeroMatricula.trim() || null,
+          observaciones: solicitudForm.observaciones.trim() || null,
+        },
+      });
+    
+      // 4) Refrescamos ambas listas
+      queryClient.invalidateQueries({
+        queryKey: ["admin-matriculacion-solicitudes"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["admin-profesionales"],
+      });
+    
+      setSolicitudDialogOpen(false);
+    };
+    
+
+
   const [formState, setFormState] = useState<ProfesionalFormState>({
     matricula: "",
     apellido: "",
@@ -322,6 +567,30 @@ export default function AdminMatriculacion() {
     setDialogOpen(true);
   };
 
+  // Crear profesional desde una solicitud
+  const handleCreateFromSolicitud = (solicitud: SolicitudMatriculacion) => {
+    // Partir nombre completo en nombre / apellido de forma básica
+    const parts = solicitud.nombre.trim().split(" ");
+    const apellido =
+      parts.length > 1 ? parts[parts.length - 1] : "";
+    const nombre =
+      parts.length > 1 ? parts.slice(0, parts.length - 1).join(" ") : parts[0];
+
+    resetForm();
+    setFormState((prev) => ({
+      ...prev,
+      apellido,
+      nombre,
+      email: solicitud.email,
+      telefono: solicitud.telefono,
+      especialidadPrincipal: solicitud.especialidad,
+      solicitudMatriculacionId: solicitud.id,
+      // El resto queda vacío por ahora, el admin completa
+    }));
+    setFormMode("create");
+    setDialogOpen(true);
+  };
+
   const handleChange =
     (field: keyof ProfesionalFormState) =>
     (
@@ -381,6 +650,35 @@ export default function AdminMatriculacion() {
     setDialogOpen(false);
   };
 
+  const formatFecha = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const getEstadoSolicitudBadgeClasses = (estado: SolicitudEstado) => {
+    switch (estado) {
+      case "pendiente":
+        return "bg-yellow-100 text-yellow-800";
+      case "en_revision":
+        return "bg-blue-100 text-blue-800";
+      case "observado":
+        return "bg-orange-100 text-orange-800";
+      case "aprobado":
+        return "bg-emerald-100 text-emerald-800";
+      case "rechazado":
+        return "bg-red-100 text-red-800";
+      default:
+        return "";
+    }
+  };
+
   return (
     <div className="animate-fade-in">
       <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -400,7 +698,237 @@ export default function AdminMatriculacion() {
         </Button>
       </div>
 
-      {/* Filtros y resumen */}
+      {/* Bloque de solicitudes de matriculación */}
+      <Dialog open={solicitudDialogOpen} onOpenChange={setSolicitudDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <form onSubmit={handleSolicitudSubmit} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle>Revisión de solicitud</DialogTitle>
+              <DialogDescription>
+                Revisá los datos del formulario, asigná la matrícula y actualizá el
+                estado de la solicitud.
+              </DialogDescription>
+            </DialogHeader>
+
+            {solicitudSeleccionada && (
+              <div className="space-y-3">
+                {/* Datos de la persona, solo lectura */}
+                <div className="rounded-md bg-muted/60 p-3 text-xs space-y-1">
+                  <p className="font-medium text-sm">
+                    {solicitudSeleccionada.nombre}
+                  </p>
+                  <p className="text-muted-foreground">
+                    DNI {solicitudSeleccionada.dni}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {solicitudSeleccionada.email}
+                    {solicitudSeleccionada.telefono &&
+                      ` · ${solicitudSeleccionada.telefono}`}
+                  </p>
+                  <p className="text-muted-foreground">
+                    Especialidad: {solicitudSeleccionada.especialidad || "-"}
+                  </p>
+                </div>
+
+                {/* Matrícula asignada */}
+                <div className="space-y-1">
+                  <Label htmlFor="numeroMatricula">Matrícula asignada</Label>
+                  <Input
+                    id="numeroMatricula"
+                    value={solicitudForm.numeroMatricula}
+                    onChange={handleSolicitudChange("numeroMatricula")}
+                    placeholder="Ej: 00123"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Obligatorio si vas a marcar la solicitud como aprobada.
+                  </p>
+                </div>
+
+                {/* Estado de la solicitud */}
+                <div className="space-y-1">
+                  <Label htmlFor="estadoSolicitud">Estado de la solicitud</Label>
+                  <select
+                    id="estadoSolicitud"
+                    className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    value={solicitudForm.estado}
+                    onChange={handleSolicitudChange("estado")}
+                  >
+                    <option value="pendiente">Pendiente</option>
+                    <option value="en_revision">En revisión</option>
+                    <option value="observado">Observado</option>
+                    <option value="aprobado">Aprobado</option>
+                    <option value="rechazado">Rechazado</option>
+                  </select>
+                </div>
+
+                {/* Observaciones */}
+                <div className="space-y-1">
+                  <Label htmlFor="observacionesSolicitud">Observaciones</Label>
+                  <Textarea
+                    id="observacionesSolicitud"
+                    rows={3}
+                    placeholder="Notas internas sobre esta solicitud, motivos de observación o rechazo, etc."
+                    value={solicitudForm.observaciones}
+                    onChange={handleSolicitudChange("observaciones")}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSolicitudDialogOpen(false)}
+                disabled={updateSolicitud.isPending}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={updateSolicitud.isPending}>
+                {updateSolicitud.isPending ? "Guardando…" : "Guardar cambios"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+                    {/* Bloque de solicitudes de matriculación - LISTADO */}
+      <Card className="border-border mb-6">
+        <CardContent className="p-4 md:p-5">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
+            <div>
+              <h2 className="text-sm font-semibold text-muted-foreground">
+                Solicitudes de matriculación recibidas
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Formularios enviados desde la web pública. Desde aquí podés
+                revisar, aprobar y vincular la solicitud con un profesional.
+              </p>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {isLoadingSolicitudes
+                ? "Cargando solicitudes…"
+                : isErrorSolicitudes
+                ? (errorSolicitudes as Error)?.message ??
+                  "Error al cargar solicitudes"
+                : `${solicitudes.length} solicitudes`}
+            </div>
+          </div>
+
+          {solicitudes.length === 0 &&
+            !isLoadingSolicitudes &&
+            !isErrorSolicitudes && (
+              <p className="text-xs text-muted-foreground">
+                No hay solicitudes de matriculación registradas.
+              </p>
+            )}
+
+          {solicitudes.length > 0 && !isLoadingSolicitudes && (
+            <ScrollArea className="w-full max-h-[260px] mt-2">
+              <table className="w-full text-xs md:text-sm border-collapse">
+                <thead>
+                  <tr className="border-b border-border text-[11px] text-muted-foreground uppercase tracking-wide">
+                    <th className="text-left py-2 px-3">Persona</th>
+                    <th className="text-left py-2 px-3">Especialidad</th>
+                    <th className="text-left py-2 px-3">Estado</th>
+                    <th className="text-left py-2 px-3 hidden md:table-cell">
+                      Creado
+                    </th>
+                    <th className="text-right py-2 px-3">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {solicitudes.map((s) => (
+                    <tr
+                      key={s.id}
+                      className="border-b border-border/60 last:border-0 hover:bg-muted/40"
+                    >
+                      <td className="py-2 px-3 align-top">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-foreground text-xs md:text-sm">
+                            {s.nombre}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            DNI {s.dni}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            {s.email} {s.telefono && `· ${s.telefono}`}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-2 px-3 align-top">
+                        <span className="text-xs">
+                          {s.especialidad || "-"}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 align-top">
+                        <Badge
+                          className={`${getEstadoSolicitudBadgeClasses(
+                            s.estado
+                          )} text-[11px] font-medium`}
+                        >
+                          {s.estado === "pendiente" && "Pendiente"}
+                          {s.estado === "en_revision" && "En revisión"}
+                          {s.estado === "observado" && "Observado"}
+                          {s.estado === "aprobado" && "Aprobado"}
+                          {s.estado === "rechazado" && "Rechazado"}
+                        </Badge>
+                        {s.observaciones && (
+                          <p className="mt-1 text-[11px] text-muted-foreground line-clamp-2">
+                            {s.observaciones}
+                          </p>
+                        )}
+                      </td>
+                      <td className="py-2 px-3 align-top hidden md:table-cell">
+                        <span className="text-[11px] text-muted-foreground">
+                          {formatFecha(s.creadoEn)}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 text-right align-top">
+                        <div className="flex flex-col items-end gap-1">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="text-[11px] h-7 px-2"
+                            onClick={() => openSolicitudDialog(s)}
+                          >
+                            Aprobar / editar
+                          </Button>
+
+                          {!s.profesionalId ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              className="text-[11px] h-7 px-2"
+                              onClick={() => handleCreateFromSolicitud(s)}
+                            >
+                              Crear profesional
+                            </Button>
+                          ) : (
+                            <span className="text-[11px] text-emerald-600">
+                              Profesional vinculado
+                            </span>
+                          )}
+
+                          {s.numeroMatriculaAsignado && (
+                            <span className="text-[11px] text-muted-foreground">
+                              Matrícula {s.numeroMatriculaAsignado}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Filtros y resumen padrón */}
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex-1 flex items-center gap-2">
           <Search className="w-4 h-4 text-muted-foreground" />
@@ -448,7 +976,7 @@ export default function AdminMatriculacion() {
         </div>
       </div>
 
-      {/* Estado de carga / error */}
+      {/* Estado de carga / error padrón */}
       {isLoading && (
         <p className="text-sm text-muted-foreground mb-4">
           Cargando profesionales…
@@ -461,7 +989,7 @@ export default function AdminMatriculacion() {
         </p>
       )}
 
-      {/* Tabla/Grilla */}
+      {/* Tabla/Grilla padrón */}
       <Card className="border-border">
         <CardContent className="p-0">
           <ScrollArea className="w-full">
@@ -567,8 +1095,7 @@ export default function AdminMatriculacion() {
       </Card>
 
       {/* Modal alta/edición */}
-            {/* Modal alta/edición */}
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-4xl p-0">
           <form
             onSubmit={handleSubmit}
@@ -827,7 +1354,6 @@ export default function AdminMatriculacion() {
           </form>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }
