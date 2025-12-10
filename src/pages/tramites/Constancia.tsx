@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { getProfesionalByDniMatricula, getConstanciaByProfesional, EstadoSolicitud } from "@/lib/dataAdapter";
+import { getProfesionalByDniMatricula, ProfesionalPublico, EstadoSolicitud } from "@/lib/dataAdapter";
 
 const estadoLabels: Record<EstadoSolicitud, string> = {
   pendiente: "Pendiente de Aprobación",
@@ -15,13 +15,23 @@ const estadoLabels: Record<EstadoSolicitud, string> = {
   rechazado: "Rechazada"
 };
 
+type ConstanciaResult = {
+  profesional: ProfesionalPublico;
+  constancia: {
+    id: string;
+    estado: EstadoSolicitud;
+    pdfFinalUrl?: string;
+    createdAt: string;
+  } | null;
+};
+
 export default function Constancia() {
   const { toast } = useToast();
   const [dni, setDni] = useState("");
   const [matricula, setMatricula] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ConstanciaResult | "not_found" | null>(null);
 
   const handleConsulta = async () => {
     if (!dni || !matricula) {
@@ -35,14 +45,11 @@ export default function Constancia() {
 
     setIsSearching(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const profesional = getProfesionalByDniMatricula(dni, matricula);
+    const profesional = await getProfesionalByDniMatricula(dni, matricula);
     
     if (profesional) {
-      const constancia = getConstanciaByProfesional(profesional.id);
-      setResult({ profesional, constancia });
+      // Por ahora retornamos sin constancia (se puede extender después)
+      setResult({ profesional, constancia: null });
     } else {
       setResult("not_found");
     }
@@ -62,12 +69,11 @@ export default function Constancia() {
     });
     
     // Update result to show pending state
-    if (result?.profesional) {
+    if (result && result !== "not_found") {
       setResult({
         ...result,
         constancia: {
           id: "new",
-          profesionalId: result.profesional.id,
           estado: "pendiente",
           createdAt: new Date().toISOString()
         }
@@ -156,7 +162,7 @@ export default function Constancia() {
                         <Clock className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
                       )}
                       <p className="font-semibold text-lg mb-1">
-                        {estadoLabels[result.constancia.estado as EstadoSolicitud]}
+                        {estadoLabels[result.constancia.estado]}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         Solicitud realizada el {new Date(result.constancia.createdAt).toLocaleDateString('es-ES')}

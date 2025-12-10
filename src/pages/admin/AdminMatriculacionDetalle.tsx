@@ -32,7 +32,22 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { mockMatriculacionSolicitudes, EstadoSolicitud } from "@/lib/dataAdapter";
+import { supabase } from "@/integrations/supabase/client";
+import { EstadoSolicitud } from "@/lib/dataAdapter";
+
+type MatriculacionSolicitud = {
+  id: string;
+  dni: string;
+  nombre: string;
+  email: string;
+  telefono: string;
+  especialidad: string;
+  estado: EstadoSolicitud;
+  observaciones: string | null;
+  numeroMatriculaAsignado: string | null;
+  documentos: { url: string; nombre?: string; tipo?: string }[] | null;
+  creadoEn: string;
+};
 
 const estadoLabels: Record<EstadoSolicitud, string> = {
   pendiente: "Pendiente",
@@ -51,31 +66,32 @@ const estadoClasses: Record<EstadoSolicitud, string> = {
 };
 
 // ───────────────────────────────
-// Helpers BFF + token admin
+// Helpers para Supabase
 // ───────────────────────────────
-async function getAdminToken() {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session) throw new Error("No hay sesión de administrador");
-  return session.access_token;
-}
 
 async function fetchSolicitudById(id: string): Promise<MatriculacionSolicitud> {
-  const token = await getAdminToken();
+  const { data, error } = await supabase
+    .from("profesional_matriculacion_solicitudes")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
 
-  const res = await fetch(`/api/admin/matriculacion/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Solicitud no encontrada");
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || "No se pudo cargar la solicitud de matriculación");
-  }
-
-  return res.json();
+  return {
+    id: data.id,
+    dni: data.dni,
+    nombre: data.nombre,
+    email: data.email,
+    telefono: data.telefono,
+    especialidad: data.especialidad,
+    estado: data.estado as EstadoSolicitud,
+    observaciones: data.observaciones,
+    numeroMatriculaAsignado: data.numero_matricula_asignado,
+    documentos: data.documentos as any,
+    creadoEn: data.creado_en,
+  };
 }
 
 type UpdatePayload = {
@@ -84,24 +100,34 @@ type UpdatePayload = {
   numeroMatriculaAsignado?: string | null;
 };
 
-async function updateSolicitud(id: string, data: UpdatePayload) {
-  const token = await getAdminToken();
+async function updateSolicitud(id: string, data: UpdatePayload): Promise<MatriculacionSolicitud> {
+  const { data: updated, error } = await supabase
+    .from("profesional_matriculacion_solicitudes")
+    .update({
+      estado: data.estado,
+      observaciones: data.observaciones,
+      numero_matricula_asignado: data.numeroMatriculaAsignado,
+    })
+    .eq("id", id)
+    .select("*")
+    .maybeSingle();
 
-  const res = await fetch(`/api/admin/matriculacion/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(data),
-  });
+  if (error) throw new Error(error.message);
+  if (!updated) throw new Error("No se pudo actualizar");
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || "No se pudo actualizar la solicitud");
-  }
-
-  return res.json() as Promise<MatriculacionSolicitud>;
+  return {
+    id: updated.id,
+    dni: updated.dni,
+    nombre: updated.nombre,
+    email: updated.email,
+    telefono: updated.telefono,
+    especialidad: updated.especialidad,
+    estado: updated.estado as EstadoSolicitud,
+    observaciones: updated.observaciones,
+    numeroMatriculaAsignado: updated.numero_matricula_asignado,
+    documentos: updated.documentos as any,
+    creadoEn: updated.creado_en,
+  };
 }
 
 // ───────────────────────────────
@@ -246,7 +272,7 @@ export default function AdminMatriculacionDetalle() {
                   <CardTitle className="font-serif text-xl">
                     {solicitud.nombre}
                   </CardTitle>
-                  <CardDescription>Solicitud #{solicitud.id}</CardDescription>
+                  <CardDescription>Solicitud #{solicitud.id.slice(0, 8)}</CardDescription>
                 </div>
                 <Badge className={estadoClasses[estado]}>
                   {estadoLabels[estado]}

@@ -42,7 +42,9 @@ type FormMode = "create" | "edit";
 type ProfesionalFormState = Omit<
   Profesional,
   "id" | "fechaAlta" | "fechaActualizacion"
->;
+> & {
+  solicitudMatriculacionId?: string | null;
+};
 
 // ───────────────────────────────
 // Helpers para llamar al BFF admin
@@ -214,6 +216,7 @@ export default function AdminMatriculacion() {
     ultimoPeriodoPago: "",
     cvPdfUrl: "",
     notasInternas: "",
+    solicitudMatriculacionId: null,
   });
 
   const filteredProfesionales = useMemo(() => {
@@ -252,6 +255,7 @@ export default function AdminMatriculacion() {
       ultimoPeriodoPago: "",
       cvPdfUrl: "",
       notasInternas: "",
+      solicitudMatriculacionId: null,
     });
     setEditingId(null);
     setFormMode("create");

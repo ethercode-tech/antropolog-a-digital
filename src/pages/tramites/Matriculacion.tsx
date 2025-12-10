@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { getMatriculacionByDni, EstadoSolicitud } from "@/lib/dataAdapter";
+import { getMatriculacionByDni, createMatriculacionSolicitud, EstadoSolicitud, MatriculacionSolicitudPublica } from "@/lib/dataAdapter";
 
 const estadoIcons: Record<EstadoSolicitud, React.ReactNode> = {
   pendiente: <Clock className="w-6 h-6 text-yellow-500" />,
@@ -40,7 +40,7 @@ export default function Matriculacion() {
 
   // Consulta state
   const [consultaDni, setConsultaDni] = useState("");
-  const [consultaResult, setConsultaResult] = useState<any>(null);
+  const [consultaResult, setConsultaResult] = useState<MatriculacionSolicitudPublica | "not_found" | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,17 +61,25 @@ export default function Matriculacion() {
 
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const result = await createMatriculacionSolicitud(formData);
     
-    toast({
-      title: "Solicitud enviada",
-      description: "Su solicitud de matriculación ha sido recibida. Puede consultar el estado con su DNI.",
-    });
+    if (result.success) {
+      toast({
+        title: "Solicitud enviada",
+        description: "Su solicitud de matriculación ha sido recibida. Puede consultar el estado con su DNI.",
+      });
+      
+      setFormData({ nombre: "", dni: "", email: "", telefono: "", especialidad: "" });
+      setActiveTab("consultar");
+    } else {
+      toast({
+        title: "Error al enviar",
+        description: result.error || "No se pudo enviar la solicitud. Intente nuevamente.",
+        variant: "destructive"
+      });
+    }
     
-    setFormData({ nombre: "", dni: "", email: "", telefono: "", especialidad: "" });
     setIsSubmitting(false);
-    setActiveTab("consultar");
   };
 
   const handleConsulta = async () => {
@@ -86,11 +94,9 @@ export default function Matriculacion() {
 
     setIsSearching(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const result = getMatriculacionByDni(consultaDni);
+    const result = await getMatriculacionByDni(consultaDni);
     setConsultaResult(result || "not_found");
+    
     setIsSearching(false);
   };
 
@@ -200,7 +206,7 @@ export default function Matriculacion() {
                           Seleccionar archivos PDF
                         </Button>
                         <p className="text-xs text-muted-foreground mt-2">
-                          (Funcionalidad simulada - En producción se integraría con almacenamiento)
+                          (Funcionalidad de carga en desarrollo)
                         </p>
                       </div>
                     </div>
@@ -237,13 +243,13 @@ export default function Matriculacion() {
                   {consultaResult && consultaResult !== "not_found" && (
                     <div className="bg-secondary/50 rounded-lg p-6 animate-fade-in">
                       <div className="flex items-start gap-4 mb-4">
-                        {estadoIcons[consultaResult.estado as EstadoSolicitud]}
+                        {estadoIcons[consultaResult.estado]}
                         <div>
                           <h3 className="font-semibold text-lg">
-                            Estado: {estadoLabels[consultaResult.estado as EstadoSolicitud]}
+                            Estado: {estadoLabels[consultaResult.estado]}
                           </h3>
                           <p className="text-sm text-muted-foreground">
-                            Solicitud #{consultaResult.id} - {consultaResult.nombre}
+                            Solicitud #{consultaResult.id.slice(0, 8)} - {consultaResult.nombre}
                           </p>
                         </div>
                       </div>

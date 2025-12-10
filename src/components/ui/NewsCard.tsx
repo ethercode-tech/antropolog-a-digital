@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Calendar, ArrowRight } from "lucide-react";
-import { News } from "@/data/mockData";
+import { News } from "@/lib/dataAdapter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 

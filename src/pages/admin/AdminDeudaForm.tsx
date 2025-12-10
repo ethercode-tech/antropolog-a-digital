@@ -1,14 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { EstadoDeuda } from "@/data/profesionalesData";
-import { mockDeudas, mockProfesionales } from "@/data/profesionalesData";
+import { supabase } from "@/integrations/supabase/client";
+
+type EstadoDeuda = "pagado" | "pendiente";
+
+type ProfesionalOption = {
+  id: string;
+  nombre: string;
+  matricula: string;
+};
 
 export default function AdminDeudaForm() {
   const { id } = useParams();
@@ -16,50 +23,127 @@ export default function AdminDeudaForm() {
   const { toast } = useToast();
   const isEditing = !!id;
 
-  const existingDeuda = isEditing ? mockDeudas.find(d => d.id === id) : null;
+  const [profesionales, setProfesionales] = useState<ProfesionalOption[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState({
-    profesionalId: existingDeuda?.profesionalId || "",
-    mes: existingDeuda?.mes || "",
-    monto: existingDeuda?.monto.toString() || "",
-    estado: existingDeuda?.estado || "pendiente"
+    profesionalId: "",
+    periodo: "",
+    concepto: "Cuota mensual",
+    monto: "",
+    estado: "pendiente" as EstadoDeuda,
+    fechaVencimiento: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    // Cargar profesionales para el select
+    supabase
+      .from("profesionales")
+      .select("id, nombre, apellido, matricula")
+      .order("apellido")
+      .then(({ data }) => {
+        setProfesionales(
+          (data || []).map((p) => ({
+            id: p.id,
+            nombre: `${p.apellido}, ${p.nombre}`,
+            matricula: p.matricula,
+          }))
+        );
+      });
+
+    // Si estamos editando, cargar la deuda existente
+    if (id) {
+      supabase
+        .from("profesional_deudas")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setFormData({
+              profesionalId: data.profesional_id,
+              periodo: data.periodo,
+              concepto: data.concepto,
+              monto: data.monto.toString(),
+              estado: data.estado as EstadoDeuda,
+              fechaVencimiento: data.fecha_vencimiento || "",
+            });
+          }
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
+  }, [id]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.profesionalId || !formData.mes || !formData.monto) {
+    if (!formData.profesionalId || !formData.periodo || !formData.monto) {
       toast({
         title: "Campos requeridos",
         description: "Por favor complete todos los campos obligatorios",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
+    const payload = {
+      profesional_id: formData.profesionalId,
+      periodo: formData.periodo,
+      concepto: formData.concepto,
+      monto: parseFloat(formData.monto),
+      estado: formData.estado,
+      fecha_vencimiento: formData.fechaVencimiento || null,
+    };
+
+    let error;
+    if (isEditing) {
+      const result = await supabase.from("profesional_deudas").update(payload).eq("id", id);
+      error = result.error;
+    } else {
+      const result = await supabase.from("profesional_deudas").insert(payload);
+      error = result.error;
+    }
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     toast({
       title: isEditing ? "Deuda actualizada" : "Deuda creada",
-      description: isEditing 
-        ? "Los datos han sido actualizados correctamente" 
-        : "El registro de deuda ha sido creado"
+      description: isEditing
+        ? "Los datos han sido actualizados correctamente"
+        : "El registro de deuda ha sido creado",
     });
-    
+
     navigate("/admin/deudas");
   };
 
+  if (loading) {
+    return (
+      <div className="py-16 text-center">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="animate-fade-in">
-      <Link 
+      <Link
         to="/admin/deudas"
         className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors"
       >
@@ -73,25 +157,24 @@ export default function AdminDeudaForm() {
             {isEditing ? "Editar Deuda" : "Nueva Deuda"}
           </CardTitle>
           <CardDescription>
-            {isEditing 
+            {isEditing
               ? "Modifique los datos del registro de deuda"
-              : "Complete los datos para crear un nuevo registro de deuda"
-            }
+              : "Complete los datos para crear un nuevo registro de deuda"}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label>Profesional *</Label>
-              <Select 
-                value={formData.profesionalId} 
-                onValueChange={(v) => setFormData(prev => ({ ...prev, profesionalId: v }))}
+              <Select
+                value={formData.profesionalId}
+                onValueChange={(v) => setFormData((prev) => ({ ...prev, profesionalId: v }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar profesional" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockProfesionales.map((prof) => (
+                  {profesionales.map((prof) => (
                     <SelectItem key={prof.id} value={prof.id}>
                       {prof.nombre} ({prof.matricula})
                     </SelectItem>
@@ -102,12 +185,12 @@ export default function AdminDeudaForm() {
 
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="mes">Período (mes) *</Label>
+                <Label htmlFor="periodo">Período *</Label>
                 <Input
-                  id="mes"
-                  name="mes"
+                  id="periodo"
+                  name="periodo"
                   type="month"
-                  value={formData.mes}
+                  value={formData.periodo}
                   onChange={handleInputChange}
                 />
               </div>
@@ -118,6 +201,7 @@ export default function AdminDeudaForm() {
                   id="monto"
                   name="monto"
                   type="number"
+                  step="0.01"
                   value={formData.monto}
                   onChange={handleInputChange}
                   placeholder="5000"
@@ -126,19 +210,43 @@ export default function AdminDeudaForm() {
             </div>
 
             <div className="space-y-2">
-              <Label>Estado *</Label>
-              <Select 
-                value={formData.estado} 
-                onValueChange={(v) => setFormData(prev => ({ ...prev, estado: v as EstadoDeuda }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pendiente">Pendiente</SelectItem>
-                  <SelectItem value="pagado">Pagado</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="concepto">Concepto *</Label>
+              <Input
+                id="concepto"
+                name="concepto"
+                value={formData.concepto}
+                onChange={handleInputChange}
+                placeholder="Cuota mensual"
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Estado *</Label>
+                <Select
+                  value={formData.estado}
+                  onValueChange={(v) => setFormData((prev) => ({ ...prev, estado: v as EstadoDeuda }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pendiente">Pendiente</SelectItem>
+                    <SelectItem value="pagado">Pagado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="fechaVencimiento">Fecha de vencimiento</Label>
+                <Input
+                  id="fechaVencimiento"
+                  name="fechaVencimiento"
+                  type="date"
+                  value={formData.fechaVencimiento}
+                  onChange={handleInputChange}
+                />
+              </div>
             </div>
 
             <div className="flex gap-4">

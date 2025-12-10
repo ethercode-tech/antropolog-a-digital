@@ -6,14 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { getProfesionalByDniMatricula, getFacturasByProfesional } from "@/lib/dataAdapter";
+import { getProfesionalByDniMatricula, getFacturasByProfesional, ProfesionalPublico, Factura } from "@/lib/dataAdapter";
 
 export default function Facturas() {
   const { toast } = useToast();
   const [dni, setDni] = useState("");
   const [matricula, setMatricula] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{ profesional: ProfesionalPublico; facturas: Factura[] } | "not_found" | null>(null);
 
   const handleConsulta = async () => {
     if (!dni || !matricula) {
@@ -27,13 +27,10 @@ export default function Facturas() {
 
     setIsSearching(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const profesional = getProfesionalByDniMatricula(dni, matricula);
+    const profesional = await getProfesionalByDniMatricula(dni, matricula);
     
     if (profesional) {
-      const facturas = getFacturasByProfesional(profesional.id);
+      const facturas = await getFacturasByProfesional(profesional.id);
       setResult({ profesional, facturas });
     } else {
       setResult("not_found");
@@ -43,6 +40,7 @@ export default function Facturas() {
   };
 
   const formatMes = (mes: string) => {
+    if (!mes) return "-";
     const [year, month] = mes.split("-");
     const date = new Date(parseInt(year), parseInt(month) - 1);
     return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
@@ -116,31 +114,37 @@ export default function Facturas() {
                       <Table>
                         <TableHeader>
                           <TableRow>
+                            <TableHead>Número</TableHead>
                             <TableHead>Período</TableHead>
-                            <TableHead>Fecha de Emisión</TableHead>
+                            <TableHead>Concepto</TableHead>
+                            <TableHead>Importe</TableHead>
                             <TableHead className="text-right">Acción</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {result.facturas.map((factura: any) => (
+                          {result.facturas.map((factura) => (
                             <TableRow key={factura.id}>
                               <TableCell className="font-medium">
-                                {formatMes(factura.mes)}
+                                {factura.numero}
                               </TableCell>
                               <TableCell>
-                                {new Date(factura.createdAt).toLocaleDateString('es-ES')}
+                                {formatMes(factura.periodo)}
                               </TableCell>
+                              <TableCell>{factura.concepto}</TableCell>
+                              <TableCell>${factura.importe.toLocaleString()}</TableCell>
                               <TableCell className="text-right">
-                                <a 
-                                  href={factura.pdfUrl} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                >
-                                  <Button variant="outline" size="sm">
-                                    <Download className="w-4 h-4 mr-2" />
-                                    Descargar PDF
-                                  </Button>
-                                </a>
+                                {factura.urlPdf && (
+                                  <a 
+                                    href={factura.urlPdf} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Button variant="outline" size="sm">
+                                      <Download className="w-4 h-4 mr-2" />
+                                      Descargar PDF
+                                    </Button>
+                                  </a>
+                                )}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -150,29 +154,34 @@ export default function Facturas() {
 
                     {/* Mobile Cards */}
                     <div className="md:hidden space-y-4">
-                      {result.facturas.map((factura: any) => (
+                      {result.facturas.map((factura) => (
                         <div 
                           key={factura.id}
                           className="bg-secondary/50 rounded-lg p-4"
                         >
                           <div className="flex items-center gap-3 mb-3">
                             <FileText className="w-5 h-5 text-primary" />
-                            <span className="font-medium">{formatMes(factura.mes)}</span>
+                            <span className="font-medium">{factura.numero}</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground mb-2">
+                            {factura.concepto}
                           </div>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                             <Calendar className="w-4 h-4" />
-                            Emitida: {new Date(factura.createdAt).toLocaleDateString('es-ES')}
+                            {formatMes(factura.periodo)} - ${factura.importe.toLocaleString()}
                           </div>
-                          <a 
-                            href={factura.pdfUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                          >
-                            <Button variant="outline" size="sm" className="w-full">
-                              <Download className="w-4 h-4 mr-2" />
-                              Descargar PDF
-                            </Button>
-                          </a>
+                          {factura.urlPdf && (
+                            <a 
+                              href={factura.urlPdf} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            >
+                              <Button variant="outline" size="sm" className="w-full">
+                                <Download className="w-4 h-4 mr-2" />
+                                Descargar PDF
+                              </Button>
+                            </a>
+                          )}
                         </div>
                       ))}
                     </div>
