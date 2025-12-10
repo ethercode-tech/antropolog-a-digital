@@ -1,4 +1,5 @@
 // src/pages/admin/AdminMatriculacion.tsx
+import type React from "react";
 import { useMemo, useState } from "react";
 import {
   Search,
@@ -129,7 +130,7 @@ async function createProfesionalRequest(
     .from("profesionales")
     .insert(dbPayload)
     .select("*")
-    .single();
+    .single(); // devuelve exactamente una fila
 
   if (error) {
     console.error("[AdminMatriculacion] Error createProfesional:", error);
@@ -150,7 +151,7 @@ async function updateProfesionalRequest(params: {
     .update(dbPayload)
     .eq("id", params.id)
     .select("*")
-    .single();
+    .single(); // devuelve exactamente una fila
 
   if (error) {
     console.error("[AdminMatriculacion] Error updateProfesional:", error);
@@ -179,7 +180,8 @@ export default function AdminMatriculacion() {
   });
 
   const createProfesional = useMutation({
-    mutationFn: createProfesionalRequest,
+    mutationFn: (payload: ProfesionalFormState) =>
+      createProfesionalRequest(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-profesionales"] });
       toast({
@@ -201,7 +203,8 @@ export default function AdminMatriculacion() {
   });
 
   const updateProfesional = useMutation({
-    mutationFn: updateProfesionalRequest,
+    mutationFn: (params: { id: string; data: ProfesionalFormState }) =>
+      updateProfesionalRequest(params),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-profesionales"] });
       toast({
@@ -366,8 +369,7 @@ export default function AdminMatriculacion() {
       email: formState.email || "",
       telefono: formState.telefono || "",
       cvPdfUrl: formState.cvPdfUrl || "",
-      solicitudMatriculacionId:
-        formState.solicitudMatriculacionId || null,
+      solicitudMatriculacionId: formState.solicitudMatriculacionId || null,
     };
 
     if (formMode === "create") {
@@ -565,226 +567,248 @@ export default function AdminMatriculacion() {
       </Card>
 
       {/* Modal alta/edición */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>
-              {formMode === "create"
-                ? "Nuevo profesional matriculado"
-                : "Editar profesional"}
-            </DialogTitle>
-            <DialogDescription>
-              {formMode === "create"
-                ? "Registrá un nuevo profesional en el padrón. Estos datos alimentan la sección pública de matriculados y los módulos de deudas, constancias y facturación."
-                : "Actualizá los datos de este profesional. Se verán reflejados en la sección pública y en los módulos internos."}
-            </DialogDescription>
-          </DialogHeader>
+            {/* Modal alta/edición */}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-4xl p-0">
+          <form
+            onSubmit={handleSubmit}
+            className="flex max-h-[80vh] flex-col"
+          >
+            {/* Header */}
+            <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
+              <DialogTitle>
+                {formMode === "create"
+                  ? "Nuevo profesional matriculado"
+                  : "Editar profesional"}
+              </DialogTitle>
+              <DialogDescription>
+                {formMode === "create"
+                  ? "Registrá un nuevo profesional en el padrón. Estos datos alimentan la sección pública de matriculados y los módulos de deudas, constancias y facturación."
+                  : "Actualizá los datos de este profesional. Se verán reflejados en la sección pública y en los módulos internos."}
+              </DialogDescription>
+            </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-6 mt-2">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-1">
-                <Label htmlFor="matricula">Matrícula</Label>
-                <Input
-                  id="matricula"
-                  value={formState.matricula}
-                  onChange={handleChange("matricula")}
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="apellido">Apellido</Label>
-                <Input
-                  id="apellido"
-                  value={formState.apellido}
-                  onChange={handleChange("apellido")}
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="nombre">Nombre</Label>
-                <Input
-                  id="nombre"
-                  value={formState.nombre}
-                  onChange={handleChange("nombre")}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-1">
-                <Label htmlFor="tipo">Tipo</Label>
-                <select
-                  id="tipo"
-                  className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  value={formState.tipo}
-                  onChange={handleChange("tipo")}
-                >
-                  <option value="licenciado">Licenciado</option>
-                  <option value="tecnico_otro">Técnico / Otro</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="estadoMatricula">Estado matrícula</Label>
-                <select
-                  id="estadoMatricula"
-                  className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  value={formState.estadoMatricula}
-                  onChange={handleChange("estadoMatricula")}
-                >
-                  <option value="activa">Activa</option>
-                  <option value="en_revision">En revisión</option>
-                  <option value="inactiva">Inactiva</option>
-                  <option value="suspendida">Suspendida</option>
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <Label>Condición</Label>
-                <div className="flex items-center gap-4 text-xs">
-                  <label className="flex items-center gap-1">
-                    <input
-                      type="checkbox"
-                      checked={formState.habilitadoEjercer}
-                      onChange={handleCheckboxChange("habilitadoEjercer")}
+            {/* Campos scrollables */}
+            <ScrollArea className="flex-1 px-6 py-4">
+              <div className="space-y-6">
+                {/* Identificación básica */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="matricula">Matrícula</Label>
+                    <Input
+                      id="matricula"
+                      value={formState.matricula}
+                      onChange={handleChange("matricula")}
+                      required
                     />
-                    Habilitado para ejercer
-                  </label>
-                  <label className="flex items-center gap-1">
-                    <input
-                      type="checkbox"
-                      checked={formState.tieneDeuda}
-                      onChange={handleCheckboxChange("tieneDeuda")}
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="apellido">Apellido</Label>
+                    <Input
+                      id="apellido"
+                      value={formState.apellido}
+                      onChange={handleChange("apellido")}
+                      required
                     />
-                    Registra deuda
-                  </label>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="nombre">Nombre</Label>
+                    <Input
+                      id="nombre"
+                      value={formState.nombre}
+                      onChange={handleChange("nombre")}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Tipo, estado y condición */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="tipo">Tipo</Label>
+                    <select
+                      id="tipo"
+                      className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      value={formState.tipo}
+                      onChange={handleChange("tipo")}
+                    >
+                      <option value="licenciado">Licenciado</option>
+                      <option value="tecnico_otro">Técnico / Otro</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="estadoMatricula">Estado matrícula</Label>
+                    <select
+                      id="estadoMatricula"
+                      className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      value={formState.estadoMatricula}
+                      onChange={handleChange("estadoMatricula")}
+                    >
+                      <option value="activa">Activa</option>
+                      <option value="en_revision">En revisión</option>
+                      <option value="inactiva">Inactiva</option>
+                      <option value="suspendida">Suspendida</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label>Condición</Label>
+                    <div className="flex flex-col gap-2 text-xs md:flex-row md:items-center">
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={formState.habilitadoEjercer}
+                          onChange={handleCheckboxChange("habilitadoEjercer")}
+                        />
+                        Habilitado para ejercer
+                      </label>
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={formState.tieneDeuda}
+                          onChange={handleCheckboxChange("tieneDeuda")}
+                        />
+                        Registra deuda
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Especialidades */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="especialidadPrincipal">
+                      Especialidad principal
+                    </Label>
+                    <Input
+                      id="especialidadPrincipal"
+                      value={formState.especialidadPrincipal}
+                      onChange={handleChange("especialidadPrincipal")}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="otrasEspecialidades">
+                      Otras especialidades (opcional)
+                    </Label>
+                    <Input
+                      id="otrasEspecialidades"
+                      value={formState.otrasEspecialidades}
+                      onChange={handleChange("otrasEspecialidades")}
+                    />
+                  </div>
+                </div>
+
+                {/* Lugar de trabajo */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="lugarTrabajo">Lugar de trabajo</Label>
+                    <Input
+                      id="lugarTrabajo"
+                      value={formState.lugarTrabajo}
+                      onChange={handleChange("lugarTrabajo")}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="institucion">Institución</Label>
+                    <Input
+                      id="institucion"
+                      value={formState.institucion}
+                      onChange={handleChange("institucion")}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="localidad">Localidad</Label>
+                    <Input
+                      id="localidad"
+                      value={formState.localidad}
+                      onChange={handleChange("localidad")}
+                    />
+                  </div>
+                </div>
+
+                {/* Ubicación y contacto */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="provincia">Provincia</Label>
+                    <Input
+                      id="provincia"
+                      value={formState.provincia}
+                      onChange={handleChange("provincia")}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formState.email}
+                      onChange={handleChange("email")}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="telefono">Teléfono</Label>
+                    <Input
+                      id="telefono"
+                      value={formState.telefono}
+                      onChange={handleChange("telefono")}
+                    />
+                  </div>
+                </div>
+
+                {/* Pago y CV */}
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="ultimoPeriodoPago">
+                      Último período pago (AAAA-MM)
+                    </Label>
+                    <Input
+                      id="ultimoPeriodoPago"
+                      placeholder="2025-01"
+                      value={formState.ultimoPeriodoPago}
+                      onChange={handleChange("ultimoPeriodoPago")}
+                    />
+                  </div>
+                  <div className="space-y-1 md:col-span-2">
+                    <Label htmlFor="cvPdfUrl">URL CV (PDF)</Label>
+                    <Input
+                      id="cvPdfUrl"
+                      value={formState.cvPdfUrl}
+                      onChange={handleChange("cvPdfUrl")}
+                    />
+                  </div>
+                </div>
+
+                {/* Notas internas */}
+                <div className="space-y-1 pb-2">
+                  <Label htmlFor="notasInternas">Notas internas</Label>
+                  <Textarea
+                    id="notasInternas"
+                    rows={3}
+                    placeholder="Información solo visible en el panel de administración (no se publica)."
+                    value={formState.notasInternas}
+                    onChange={handleChange("notasInternas")}
+                  />
                 </div>
               </div>
-            </div>
+            </ScrollArea>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-1">
-                <Label htmlFor="especialidadPrincipal">
-                  Especialidad principal
-                </Label>
-                <Input
-                  id="especialidadPrincipal"
-                  value={formState.especialidadPrincipal}
-                  onChange={handleChange("especialidadPrincipal")}
-                  required
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="otrasEspecialidades">
-                  Otras especialidades (opcional)
-                </Label>
-                <Input
-                  id="otrasEspecialidades"
-                  value={formState.otrasEspecialidades}
-                  onChange={handleChange("otrasEspecialidades")}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-1">
-                <Label htmlFor="lugarTrabajo">Lugar de trabajo</Label>
-                <Input
-                  id="lugarTrabajo"
-                  value={formState.lugarTrabajo}
-                  onChange={handleChange("lugarTrabajo")}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="institucion">Institución</Label>
-                <Input
-                  id="institucion"
-                  value={formState.institucion}
-                  onChange={handleChange("institucion")}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="localidad">Localidad</Label>
-                <Input
-                  id="localidad"
-                  value={formState.localidad}
-                  onChange={handleChange("localidad")}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-1">
-                <Label htmlFor="provincia">Provincia</Label>
-                <Input
-                  id="provincia"
-                  value={formState.provincia}
-                  onChange={handleChange("provincia")}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formState.email}
-                  onChange={handleChange("email")}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="telefono">Teléfono</Label>
-                <Input
-                  id="telefono"
-                  value={formState.telefono}
-                  onChange={handleChange("telefono")}
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-1">
-                <Label htmlFor="ultimoPeriodoPago">
-                  Último período pago (AAAA-MM)
-                </Label>
-                <Input
-                  id="ultimoPeriodoPago"
-                  placeholder="2025-01"
-                  value={formState.ultimoPeriodoPago}
-                  onChange={handleChange("ultimoPeriodoPago")}
-                />
-              </div>
-              <div className="space-y-1 md:col-span-2">
-                <Label htmlFor="cvPdfUrl">URL CV (PDF)</Label>
-                <Input
-                  id="cvPdfUrl"
-                  value={formState.cvPdfUrl}
-                  onChange={handleChange("cvPdfUrl")}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <Label htmlFor="notasInternas">Notas internas</Label>
-              <Textarea
-                id="notasInternas"
-                rows={3}
-                placeholder="Información solo visible en el panel de administración (no se publica)."
-                value={formState.notasInternas}
-                onChange={handleChange("notasInternas")}
-              />
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2 border-t border-border/70">
+            {/* Footer fijo con botones */}
+            <div className="flex justify-end gap-3 border-t border-border bg-background/95 px-6 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/75">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 onClick={() => setDialogOpen(false)}
+                disabled={
+                  createProfesional.isPending || updateProfesional.isPending
+                }
               >
                 Cancelar
               </Button>
+
               <Button
                 type="submit"
                 disabled={
@@ -803,6 +827,7 @@ export default function AdminMatriculacion() {
           </form>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }
