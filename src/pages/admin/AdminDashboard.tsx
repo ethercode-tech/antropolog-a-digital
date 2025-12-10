@@ -1,3 +1,5 @@
+// src/pages/admin/AdminDashboard.tsx
+import type React from "react";
 import { Link } from "react-router-dom";
 import {
   Newspaper,
@@ -10,8 +12,11 @@ import {
   Award,
   Receipt,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+
 import { Card, CardContent } from "@/components/ui/card";
-import { mockNews, mockDocuments, mockGalleryImages } from "@/lib/dataAdapter";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
 type StatCardConfig = {
   label: string;
@@ -28,61 +33,62 @@ type QuickActionConfig = {
   description?: string;
 };
 
-const stats: StatCardConfig[] = [
-  // {
-  //   label: "Usuarios",
-  //   href: "/admin/usuarios",
-  //   icon: Users,
-  //   color: "bg-sky-500/10 text-sky-500",
-  //   // TODO: reemplazar con conteo real
-  // },
-  {
-    label: "Matriculación",
-    href: "/admin/matriculacion",
-    icon: ClipboardList,
-    color: "bg-emerald-500/10 text-emerald-500",
-    // value: pendientes de revisión, cuando tengas API
-  },
-  {
-    label: "Deudas",
-    href: "/admin/deudas",
-    icon: FileWarning,
-    color: "bg-amber-500/10 text-amber-500",
-  },
-  // {
-  //   label: "Constancias",
-  //   href: "/admin/constancias",
-  //   icon: Award,
-  //   color: "bg-purple-500/10 text-purple-500",
-  // },
-  {
-    label: "Facturas",
-    href: "/admin/facturas",
-    icon: Receipt,
-    color: "bg-rose-500/10 text-rose-500",
-  },
-  {
-    label: "Noticias",
-    href: "/admin/noticias",
-    icon: Newspaper,
-    color: "bg-blue-500/10 text-blue-500",
-    value: mockNews.length,
-  },
-  {
-    label: "Documentos",
-    href: "/admin/documentos",
-    icon: FileText,
-    color: "bg-green-500/10 text-green-500",
-    value: mockDocuments.length,
-  },
-  {
-    label: "Imágenes",
-    href: "/admin/galeria",
-    icon: Image,
-    color: "bg-amber-500/10 text-amber-500",
-    value: mockGalleryImages.length,
-  },
-];
+type DashboardStats = {
+  matriculacionPendientes: number;
+  deudasPendientes: number;
+  totalFacturas: number;
+  totalNoticias: number;
+  totalDocumentos: number;
+  totalImagenes: number;
+};
+
+async function fetchDashboardStats(): Promise<DashboardStats> {
+  const [
+    matriculacionPendRes,
+    deudasPendRes,
+    facturasRes,
+    noticiasRes,
+    documentosRes,
+    imagenesRes,
+  ] = await Promise.all([
+    supabase
+      .from("profesionales")
+      .select("*", { head: true, count: "exact" })
+      .eq("estado_matricula", "en_revision"),
+    supabase
+      .from("profesional_deudas")
+      .select("*", { head: true, count: "exact" })
+      .eq("estado", "pendiente"),
+    supabase
+      .from("profesional_facturas")
+      .select("*", { head: true, count: "exact" }),
+    supabase
+      .from("news")
+      .select("*", { head: true, count: "exact" }),
+    supabase
+      .from("documents")
+      .select("*", { head: true, count: "exact" }),
+    supabase
+      .from("gallery_images")
+      .select("*", { head: true, count: "exact" }),
+  ]);
+
+  if (matriculacionPendRes.error) throw matriculacionPendRes.error;
+  if (deudasPendRes.error) throw deudasPendRes.error;
+  if (facturasRes.error) throw facturasRes.error;
+  if (noticiasRes.error) throw noticiasRes.error;
+  if (documentosRes.error) throw documentosRes.error;
+  if (imagenesRes.error) throw imagenesRes.error;
+
+  return {
+    matriculacionPendientes: matriculacionPendRes.count ?? 0,
+    deudasPendientes: deudasPendRes.count ?? 0,
+    totalFacturas: facturasRes.count ?? 0,
+    totalNoticias: noticiasRes.count ?? 0,
+    totalDocumentos: documentosRes.count ?? 0,
+    totalImagenes: imagenesRes.count ?? 0,
+  };
+}
 
 const quickActions: QuickActionConfig[] = [
   {
@@ -97,12 +103,6 @@ const quickActions: QuickActionConfig[] = [
     icon: FileWarning,
     description: "Ver y actualizar estado de cuotas",
   },
-  // {
-  //   label: "Emitir constancias",
-  //   href: "/admin/constancias",
-  //   icon: Award,
-  //   description: "Generar constancias para colegiados",
-  // },
   {
     label: "Generar facturas",
     href: "/admin/facturas",
@@ -130,6 +130,62 @@ const quickActions: QuickActionConfig[] = [
 ];
 
 export default function AdminDashboard() {
+  const {
+    data: dashboardStats,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["admin-dashboard-stats"],
+    queryFn: fetchDashboardStats,
+  });
+
+  const stats: StatCardConfig[] = [
+    {
+      label: "Matriculación",
+      href: "/admin/matriculacion",
+      icon: ClipboardList,
+      color: "bg-emerald-500/10 text-emerald-500",
+      // cantidad de profesionales con estado_matricula = 'en_revision'
+      value: dashboardStats?.matriculacionPendientes,
+    },
+    {
+      label: "Deudas (pendientes)",
+      href: "/admin/deudas",
+      icon: FileWarning,
+      color: "bg-amber-500/10 text-amber-500",
+      value: dashboardStats?.deudasPendientes,
+    },
+    {
+      label: "Facturas",
+      href: "/admin/facturas",
+      icon: Receipt,
+      color: "bg-rose-500/10 text-rose-500",
+      value: dashboardStats?.totalFacturas,
+    },
+    {
+      label: "Noticias",
+      href: "/admin/noticias",
+      icon: Newspaper,
+      color: "bg-blue-500/10 text-blue-500",
+      value: dashboardStats?.totalNoticias,
+    },
+    {
+      label: "Documentos",
+      href: "/admin/documentos",
+      icon: FileText,
+      color: "bg-green-500/10 text-green-500",
+      value: dashboardStats?.totalDocumentos,
+    },
+    {
+      label: "Imágenes",
+      href: "/admin/galeria",
+      icon: Image,
+      color: "bg-amber-500/10 text-amber-500",
+      value: dashboardStats?.totalImagenes,
+    },
+  ];
+
   return (
     <div className="animate-fade-in">
       <div className="mb-8">
@@ -139,6 +195,12 @@ export default function AdminDashboard() {
         <p className="text-muted-foreground mt-1">
           Panel general de gestión del Colegio de Antropología.
         </p>
+        {isError && (
+          <p className="text-sm text-red-500 mt-2">
+            {(error as Error)?.message ||
+              "No se pudieron cargar las estadísticas del dashboard."}
+          </p>
+        )}
       </div>
 
       {/* Módulos principales */}
@@ -149,6 +211,7 @@ export default function AdminDashboard() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => {
             const Icon = stat.icon;
+            const hasValue = typeof stat.value === "number";
             return (
               <Card
                 key={stat.label}
@@ -161,13 +224,13 @@ export default function AdminDashboard() {
                       <p className="text-xs text-muted-foreground mb-1">
                         {stat.label}
                       </p>
-                      {typeof stat.value === "number" ? (
+                      {hasValue && !isLoading ? (
                         <p className="text-2xl font-bold text-foreground">
                           {stat.value}
                         </p>
                       ) : (
                         <p className="text-xl font-semibold text-muted-foreground">
-                          —
+                          {isLoading ? "…" : "—"}
                         </p>
                       )}
                     </div>
@@ -198,7 +261,7 @@ export default function AdminDashboard() {
               Acciones rápidas
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {quickActions.map((action, index) => {
+              {quickActions.map((action) => {
                 const Icon = action.icon;
                 return (
                   <Link
