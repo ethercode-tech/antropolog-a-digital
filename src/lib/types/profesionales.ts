@@ -10,39 +10,45 @@ export type ProfesionalEstadoMatricula =
   | "suspendida";
 
 export interface Profesional {
-  id: string;
-  // identificador interno (UUID en la DB idealmente)
-  matricula: string;
-  apellido: string;
-  nombre: string;
+  id: string;                // uuid NOT NULL
+  matricula: string;         // text NOT NULL (unique)
+  apellido: string;          // text NOT NULL
+  nombre: string;            // text NOT NULL
 
-  tipo: ProfesionalTipo;
+  tipo: ProfesionalTipo;     // profesional_tipo NOT NULL (default 'licenciado')
 
+  // especialidad_principal text NOT NULL
   especialidadPrincipal: string;
-  otrasEspecialidades?: string;
 
-  // Ubicación / trabajo
-  lugarTrabajo?: string;
-  institucion?: string;
-  localidad?: string;
-  provincia?: string;
+  // otras_especialidades text NULL
+  otrasEspecialidades: string | null;
 
-  // Contacto
-  email?: string;
-  telefono?: string;
+  // Ubicación / trabajo (todas NULL en DB)
+  lugarTrabajo: string | null;   // lugar_trabajo
+  institucion: string | null;
+  localidad: string | null;
+  provincia: string | null;
+
+  // Contacto (NULL en DB)
+  email: string | null;
+  telefono: string | null;
 
   // Estado de matrícula y relación con otros módulos
-  estadoMatricula: ProfesionalEstadoMatricula;
-  habilitadoEjercer: boolean;
-  tieneDeuda: boolean;
-  ultimoPeriodoPago?: string; // "2025-01", por ejemplo
+  estadoMatricula: ProfesionalEstadoMatricula; // NOT NULL con default
+  habilitadoEjercer: boolean;                  // NOT NULL default true
+  tieneDeuda: boolean;                         // NOT NULL default false
+  ultimoPeriodoPago: string | null;           // ultimo_periodo_pago text NULL, ej "2025-01"
 
   // Meta
-  cvPdfUrl?: string;
-  notasInternas?: string;
+  cvPdfUrl: string | null;        // cv_pdf_url
+  notasInternas: string | null;   // notas_internas
 
-  fechaAlta: string; // ISO
-  fechaActualizacion?: string; // ISO
+  // Fechas (NOT NULL en DB, con default now())
+  fechaAlta: string;              // fecha_alta (ISO recomendada al mapear)
+  fechaActualizacion: string;     // fecha_actualizacion
+
+  // FK opcional a solicitud
+  solicitudMatriculacionId: string | null; // solicitud_matriculacion_id uuid NULL
 }
 
 // Helpers de presentación para la parte pública / UI

@@ -1,14 +1,13 @@
+// api/admin/profesionales/index.ts
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { supabaseAdmin } from "../_supabaseAdmin";
 import type { Profesional } from "../../src/lib/types/profesionales";
 
-// ─────────────────────────────────────
+// ───────────────────────────────
 // CORS
-// ─────────────────────────────────────
-
+// ───────────────────────────────
 function setCors(res: VercelResponse) {
-  // Mientras estés probando desde localhost, esto te sirve.
-  // Si después querés algo más estricto, cambiás el "*".
+  // En dev, dejalo abierto. Si querés, después cambiás "*" por tu dominio.
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader(
@@ -17,10 +16,9 @@ function setCors(res: VercelResponse) {
   );
 }
 
-// ─────────────────────────────────────
-// Auth burda para POST (solo dev)
-// ─────────────────────────────────────
-
+// ───────────────────────────────
+// Auth simple para POST
+// ───────────────────────────────
 function assertAdmin(req: VercelRequest) {
   const token = req.headers["x-admin-token"];
   if (!token || token !== process.env.ADMIN_INTERNAL_TOKEN) {
@@ -30,7 +28,7 @@ function assertAdmin(req: VercelRequest) {
   }
 }
 
-// Helper para mapear registro de DB (snake_case) a tipo del front (camelCase)
+// Map DB → tipo del front (camelCase)
 function mapProfesionalRow(row: any): Profesional {
   return {
     id: row.id,
@@ -53,16 +51,16 @@ function mapProfesionalRow(row: any): Profesional {
     cvPdfUrl: row.cv_pdf_url,
     notasInternas: row.notas_internas,
     fechaAlta: row.fecha_alta,
-    fechaActualizacion: row.fecha_actualizacion
+    fechaActualizacion: row.fecha_actualizacion,
+    solicitudMatriculacionId: row.solicitud_matriculacion_id ?? null,
   };
 }
 
-// ─────────────────────────────────────
+// ───────────────────────────────
 // Handler principal
-// ─────────────────────────────────────
-
+// ───────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Siempre setear CORS
+  // Siempre aplicar CORS
   setCors(res);
 
   // Preflight CORS
@@ -71,7 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // ─────────────── GET /api/admin/profesionales ───────────────
+    // GET /api/admin/profesionales
     if (req.method === "GET") {
       const search = String(req.query.search || "").toLowerCase();
       const estado = req.query.estado as string | undefined;
@@ -104,11 +102,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             });
 
       const mapped = (filtered ?? []).map(mapProfesionalRow);
-
       return res.status(200).json(mapped);
     }
 
-    // ─────────────── POST /api/admin/profesionales ───────────────
+    // POST /api/admin/profesionales
     if (req.method === "POST") {
       assertAdmin(req);
 
