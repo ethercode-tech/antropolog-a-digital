@@ -7,14 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { getProfesionalByDniMatricula, getDeudasByProfesional, EstadoDeuda } from "@/lib/dataAdapter";
+import { getProfesionalByDniMatricula, getDeudasByProfesional, Deuda as DeudaType, ProfesionalPublico } from "@/lib/dataAdapter";
 
 export default function Deuda() {
   const { toast } = useToast();
   const [dni, setDni] = useState("");
   const [matricula, setMatricula] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{ profesional: ProfesionalPublico; deudas: DeudaType[] } | "not_found" | null>(null);
 
   const handleConsulta = async () => {
     if (!dni || !matricula) {
@@ -28,13 +28,10 @@ export default function Deuda() {
 
     setIsSearching(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const profesional = getProfesionalByDniMatricula(dni, matricula);
+    const profesional = await getProfesionalByDniMatricula(dni, matricula);
     
     if (profesional) {
-      const deudas = getDeudasByProfesional(profesional.id);
+      const deudas = await getDeudasByProfesional(profesional.id);
       setResult({ profesional, deudas });
     } else {
       setResult("not_found");
@@ -49,8 +46,9 @@ export default function Deuda() {
     return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
   };
 
-  const totalDeuda = result?.deudas?.filter((d: any) => d.estado === "pendiente")
-    .reduce((acc: number, d: any) => acc + d.monto, 0) || 0;
+  const totalDeuda = result && result !== "not_found" 
+    ? result.deudas.filter((d) => d.estado === "pendiente").reduce((acc, d) => acc + d.monto, 0)
+    : 0;
 
   return (
     <div className="animate-fade-in">
@@ -122,7 +120,7 @@ export default function Deuda() {
                     <Clock className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">Cuotas Pendientes</p>
                     <p className="text-2xl font-bold">
-                      {result.deudas.filter((d: any) => d.estado === "pendiente").length}
+                      {result.deudas.filter((d) => d.estado === "pendiente").length}
                     </p>
                   </CardContent>
                 </Card>
@@ -131,7 +129,7 @@ export default function Deuda() {
                     <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground">Cuotas Pagadas</p>
                     <p className="text-2xl font-bold">
-                      {result.deudas.filter((d: any) => d.estado === "pagado").length}
+                      {result.deudas.filter((d) => d.estado === "pagado").length}
                     </p>
                   </CardContent>
                 </Card>
@@ -151,16 +149,18 @@ export default function Deuda() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Período</TableHead>
+                          <TableHead>Concepto</TableHead>
                           <TableHead>Monto</TableHead>
                           <TableHead>Estado</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {result.deudas.map((deuda: any) => (
+                        {result.deudas.map((deuda) => (
                           <TableRow key={deuda.id}>
                             <TableCell className="font-medium">
-                              {formatMes(deuda.mes)}
+                              {formatMes(deuda.periodo)}
                             </TableCell>
+                            <TableCell>{deuda.concepto}</TableCell>
                             <TableCell>${deuda.monto.toLocaleString()}</TableCell>
                             <TableCell>
                               <Badge 

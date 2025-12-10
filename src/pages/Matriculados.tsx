@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState,useEffect } from "react";
-import { Search, User, Briefcase, MapPin, Clipboard, X } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { Search, User, Briefcase, MapPin, Clipboard, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,66 +14,25 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { getProfesionales, ProfesionalPublico } from "@/lib/dataAdapter";
 
-import { getProfesionales } from "@/lib/dataAdapter";
-
-type TipoProfesional = "Licenciado" | "Técnico / Otro";
-
-type Profesional = {
-  id: string;
-  nombre: string;
-  matricula: string;
-  tipo: TipoProfesional;
-  especialidad: string;
-  lugarTrabajo: string;
-  estadoMatricula: "Activa" | "Inactiva" | "En revisión";
-  email?: string;
-  telefono?: string;
-  cvPdfUrl?: string;
-};
-// Mock de PROFESIONALES COMENTADO 
-// const MOCK_PROFESIONALES: Profesional[] = [
-//   {
-//     id: "1",
-//     nombre: "María López",
-//     matricula: "ANT-00123",
-//     tipo: "Licenciado",
-//     especialidad: "Antropología Social",
-//     lugarTrabajo: "San Salvador de Jujuy",
-//     estadoMatricula: "Activa",
-//     email: "maria.lopez@example.com",
-//     telefono: "+54 9 388 555 0101",
-//     cvPdfUrl: "https://ejemplo.com/cv/maria-lopez.pdf",
-//   },
-//   {
-//     id: "2",
-//     nombre: "Juan Pérez",
-//     matricula: "ANT-00124",
-//     tipo: "Técnico / Otro",
-//     especialidad: "Gestión Cultural",
-//     lugarTrabajo: "Palpalá",
-//     estadoMatricula: "En revisión",
-//     email: "juan.perez@example.com",
-//   },
-//   // TODO: reemplazar MOCK_PROFESIONALES por datos reales desde la base de datos
-// ];
+type TipoProfesional = "Licenciado" | "Técnico / Otro" | "Todos";
 
 export default function MatriculadosPage() {
-  const [profesionales, setProfesionales] = useState<Profesional[]>([]);
+  const [profesionales, setProfesionales] = useState<ProfesionalPublico[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const [searchNombre, setSearchNombre] = useState("");
   const [searchEspecialidad, setSearchEspecialidad] = useState("");
   const [searchLugar, setSearchLugar] = useState("");
-  const [tipoFilter, setTipoFilter] = useState<TipoProfesional | "Todos">(
-    "Licenciado"
-  );
-  const [selected, setSelected] = useState<Profesional | null>(null);
-
+  const [tipoFilter, setTipoFilter] = useState<TipoProfesional>("Todos");
+  const [selected, setSelected] = useState<ProfesionalPublico | null>(null);
 
   useEffect(() => {
-    getProfesionales().then((profesionales) => {
-      setProfesionales(profesionales);
+    getProfesionales().then((data) => {
+      setProfesionales(data);
+      setLoading(false);
     });
   }, []);
 
@@ -90,7 +49,7 @@ export default function MatriculadosPage() {
         .toLowerCase()
         .includes(searchEspecialidad.toLowerCase());
 
-      const matchLugar = p.lugarTrabajo
+      const matchLugar = (p.lugarTrabajo || "")
         .toLowerCase()
         .includes(searchLugar.toLowerCase());
 
@@ -98,7 +57,7 @@ export default function MatriculadosPage() {
     });
   }, [profesionales, tipoFilter, searchNombre, searchEspecialidad, searchLugar]);
 
-  const handleCopy = async (profesional: Profesional) => {
+  const handleCopy = async (profesional: ProfesionalPublico) => {
     const lines = [
       `Nombre: ${profesional.nombre}`,
       `Matrícula: ${profesional.matricula}`,
@@ -214,91 +173,103 @@ export default function MatriculadosPage() {
             </div>
           </div>
 
+          {/* Loading state */}
+          {loading && (
+            <div className="py-12 text-center">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+              <p className="mt-4 text-muted-foreground">Cargando profesionales...</p>
+            </div>
+          )}
+
           {/* Results summary */}
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <p className="text-sm text-muted-foreground">
-              Se encontraron{" "}
-              <span className="font-semibold">
-                {profesionalesFiltrados.length}
-              </span>{" "}
-              profesionales según los filtros aplicados.
-            </p>
-          </div>
+          {!loading && (
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <p className="text-sm text-muted-foreground">
+                Se encontraron{" "}
+                <span className="font-semibold">
+                  {profesionalesFiltrados.length}
+                </span>{" "}
+                profesionales según los filtros aplicados.
+              </p>
+            </div>
+          )}
 
           {/* List */}
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {profesionalesFiltrados.map((profesional) => (
-              <Card
-                key={profesional.id}
-                className="hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => setSelected(profesional)}
-              >
-                <CardContent className="p-5 space-y-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-primary" />
-                        <h2 className="font-semibold text-foreground">
-                          {profesional.nombre}
-                        </h2>
+          {!loading && (
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {profesionalesFiltrados.map((profesional) => (
+                <Card
+                  key={profesional.id}
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setSelected(profesional)}
+                >
+                  <CardContent className="p-5 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-primary" />
+                          <h2 className="font-semibold text-foreground">
+                            {profesional.nombre}
+                          </h2>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Matrícula{" "}
+                          <span className="font-medium">
+                            {profesional.matricula}
+                          </span>
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Matrícula{" "}
-                        <span className="font-medium">
-                          {profesional.matricula}
-                        </span>
-                      </p>
+                      <Badge
+                        variant={
+                          profesional.estadoMatricula === "Activa"
+                            ? "default"
+                            : profesional.estadoMatricula === "En revisión"
+                            ? "secondary"
+                            : "outline"
+                        }
+                      >
+                        {profesional.estadoMatricula}
+                      </Badge>
                     </div>
-                    <Badge
-                      variant={
-                        profesional.estadoMatricula === "Activa"
-                          ? "default"
-                          : profesional.estadoMatricula === "En revisión"
-                          ? "secondary"
-                          : "outline"
-                      }
-                    >
-                      {profesional.estadoMatricula}
-                    </Badge>
-                  </div>
 
-                  <div className="space-y-1 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-primary" />
-                      <span>{profesional.especialidad}</span>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="w-4 h-4 text-primary" />
+                        <span>{profesional.especialidad}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-primary" />
+                        <span>{profesional.lugarTrabajo || "No especificado"}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-primary" />
-                      <span>{profesional.lugarTrabajo}</span>
+
+                    <div className="flex justify-between items-center pt-2">
+                      <span className="text-xs text-muted-foreground">
+                        {profesional.tipo}
+                      </span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelected(profesional);
+                        }}
+                      >
+                        Ver perfil
+                      </Button>
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
+              ))}
 
-                  <div className="flex justify-between items-center pt-2">
-                    <span className="text-xs text-muted-foreground">
-                      {profesional.tipo}
-                    </span>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelected(profesional);
-                      }}
-                    >
-                      Ver perfil
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {profesionalesFiltrados.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No se encontraron profesionales con los filtros actuales.
-              </p>
-            )}
-          </div>
+              {profesionalesFiltrados.length === 0 && (
+                <p className="text-sm text-muted-foreground col-span-full text-center py-8">
+                  No se encontraron profesionales con los filtros actuales.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
@@ -343,7 +314,7 @@ export default function MatriculadosPage() {
                   </p>
                   <p>
                     <span className="font-semibold">Lugar de trabajo: </span>
-                    {selected.lugarTrabajo}
+                    {selected.lugarTrabajo || "No especificado"}
                   </p>
                   {selected.email && (
                     <p>

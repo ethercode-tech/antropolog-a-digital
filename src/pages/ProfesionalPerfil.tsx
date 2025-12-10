@@ -1,28 +1,40 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, User, Mail, Phone, MapPin, GraduationCap, FileText, Calendar, Download } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, User, Mail, Phone, MapPin, GraduationCap, FileText, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { mockProfesionales, EstadoMatricula } from "@/data/profesionalesData";
+import { getProfesionalById, ProfesionalPublico } from "@/lib/dataAdapter";
 
-const estadoLabels: Record<EstadoMatricula, string> = {
-  activo: "Activo",
-  inactivo: "Inactivo",
-  en_revision: "En Revisión",
-  suspendido: "Suspendido"
-};
-
-const estadoColors: Record<EstadoMatricula, string> = {
-  activo: "bg-green-100 text-green-800",
-  inactivo: "bg-gray-100 text-gray-800",
-  en_revision: "bg-yellow-100 text-yellow-800",
-  suspendido: "bg-red-100 text-red-800"
+const estadoColors: Record<string, string> = {
+  Activa: "bg-green-100 text-green-800",
+  Inactiva: "bg-gray-100 text-gray-800",
+  "En revisión": "bg-yellow-100 text-yellow-800",
 };
 
 export default function ProfesionalPerfil() {
   const { id } = useParams();
-  const profesional = mockProfesionales.find(p => p.id === id);
+  const [profesional, setProfesional] = useState<ProfesionalPublico | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      getProfesionalById(id).then((data) => {
+        setProfesional(data);
+        setLoading(false);
+      });
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="container-main py-16 text-center">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+        <p className="mt-4 text-muted-foreground">Cargando perfil...</p>
+      </div>
+    );
+  }
 
   if (!profesional) {
     return (
@@ -62,8 +74,8 @@ export default function ProfesionalPerfil() {
               <p className="text-xl text-primary font-medium mb-3">
                 Matrícula: {profesional.matricula}
               </p>
-              <Badge className={`${estadoColors[profesional.estadoMatricula]}`}>
-                {estadoLabels[profesional.estadoMatricula]}
+              <Badge className={estadoColors[profesional.estadoMatricula] || "bg-gray-100 text-gray-800"}>
+                {profesional.estadoMatricula}
               </Badge>
             </div>
           </div>
@@ -93,21 +105,15 @@ export default function ProfesionalPerfil() {
                     <MapPin className="w-5 h-5 text-primary" />
                     <div>
                       <p className="text-sm text-muted-foreground">Lugar de trabajo</p>
-                      <p className="font-medium">{profesional.lugarTrabajo}</p>
+                      <p className="font-medium">{profesional.lugarTrabajo || "No especificado"}</p>
                     </div>
                   </div>
                   <Separator />
                   <div className="flex items-center gap-3">
-                    <Calendar className="w-5 h-5 text-primary" />
+                    <User className="w-5 h-5 text-primary" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Matriculado desde</p>
-                      <p className="font-medium">
-                        {new Date(profesional.createdAt).toLocaleDateString('es-ES', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </p>
+                      <p className="text-sm text-muted-foreground">Tipo</p>
+                      <p className="font-medium">{profesional.tipo}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -141,26 +147,35 @@ export default function ProfesionalPerfil() {
                   <CardTitle className="font-serif">Datos de Contacto</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Mail className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Email</p>
-                      <a 
-                        href={`mailto:${profesional.email}`}
-                        className="font-medium text-primary hover:underline"
-                      >
-                        {profesional.email}
-                      </a>
+                  {profesional.email && (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <Mail className="w-5 h-5 text-primary" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Email</p>
+                          <a 
+                            href={`mailto:${profesional.email}`}
+                            className="font-medium text-primary hover:underline"
+                          >
+                            {profesional.email}
+                          </a>
+                        </div>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+                  {profesional.telefono && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Teléfono</p>
+                        <p className="font-medium">{profesional.telefono}</p>
+                      </div>
                     </div>
-                  </div>
-                  <Separator />
-                  <div className="flex items-center gap-3">
-                    <Phone className="w-5 h-5 text-primary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Teléfono</p>
-                      <p className="font-medium">{profesional.telefono}</p>
-                    </div>
-                  </div>
+                  )}
+                  {!profesional.email && !profesional.telefono && (
+                    <p className="text-muted-foreground text-sm">No hay datos de contacto disponibles</p>
+                  )}
                 </CardContent>
               </Card>
 
