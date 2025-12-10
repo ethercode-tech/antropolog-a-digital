@@ -1,35 +1,69 @@
-// api/admin/profesionales/index.ts
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { supabaseAdmin } from "../_supabaseAdmin";
 import type { Profesional } from "../../src/lib/types/profesionales";
 
-// ───────────────────────────────
+// ─────────────────────────────────────────
+// LOG HELPER
+// ─────────────────────────────────────────
+function log(...args: any[]) {
+  console.log("[ADMIN/PROFESIONALES]", ...args);
+}
+
+// ─────────────────────────────────────────
 // CORS
-// ───────────────────────────────
-function setCors(res: VercelResponse) {
-  // En dev, dejalo abierto. Si querés, después cambiás "*" por tu dominio.
-  res.setHeader("Access-Control-Allow-Origin", "*");
+// ─────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  "http://localhost:8080",
+  "https://colegiodeantropologos.vercel.app",
+];
+
+function setCors(req: VercelRequest, res: VercelResponse) {
+  const origin = req.headers.origin || "NO_ORIGIN";
+  log("CORS origin recibido:", origin);
+
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+  }
+
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
     "Content-Type, Authorization, x-admin-token"
   );
+
+  log("CORS aplicado");
 }
 
-// ───────────────────────────────
-// Auth simple para POST
-// ───────────────────────────────
+// ─────────────────────────────────────────
+// Auth simple
+// ─────────────────────────────────────────
 function assertAdmin(req: VercelRequest) {
+  log("Validando admin token...");
   const token = req.headers["x-admin-token"];
-  if (!token || token !== process.env.ADMIN_INTERNAL_TOKEN) {
+
+  if (!token) {
+    log("ERROR: Token faltante");
     const error: any = new Error("Unauthorized");
     error.statusCode = 401;
     throw error;
   }
+
+  if (token !== process.env.ADMIN_INTERNAL_TOKEN) {
+    log("ERROR: Token inválido", token);
+    const error: any = new Error("Unauthorized");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  log("Admin autorizado");
 }
 
-// Map DB → tipo del front (camelCase)
+// ─────────────────────────────────────────
+// Mapper
+// ─────────────────────────────────────────
 function mapProfesionalRow(row: any): Profesional {
+  log("Mapeando fila DB:", row?.id);
   return {
     id: row.id,
     matricula: row.matricula,
@@ -56,62 +90,61 @@ function mapProfesionalRow(row: any): Profesional {
   };
 }
 
-// ───────────────────────────────
+// ─────────────────────────────────────────
 // Handler principal
-// ───────────────────────────────
+// ─────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Siempre aplicar CORS
-  setCors(res);
+  log("──────────────────────────────────────────");
+  log("Nueva request:", req.method, req.url);
 
-  // Preflight CORS
+  setCors(req, res);
+
   if (req.method === "OPTIONS") {
+    log("OPTIONS finalizado");
     return res.status(200).end();
   }
 
   try {
-    // GET /api/admin/profesionales
     if (req.method === "GET") {
-      const search = String(req.query.search || "").toLowerCase();
-      const estado = req.query.estado as string | undefined;
+      log("Procesando GET profesionales...");
+      log("Query params:", req.query);
 
       let query = supabaseAdmin
         .from("profesionales")
         .select("*")
         .order("apellido", { ascending: true });
 
+      const estado = req.query.estado;
       if (estado && estado !== "todos") {
+        log("Aplicando filtro estado:", estado);
         query = query.eq("estado_matricula", estado);
       }
 
       const { data, error } = await query;
 
       if (error) {
-        console.error("[GET /api/admin/profesionales] DB_ERROR", error);
+        log("ERROR DB GET:", error);
         return res.status(500).json({ error: "DB_ERROR" });
       }
 
-      const filtered =
-        search.trim().length === 0
-          ? data
-          : data?.filter((p) => {
-              const fullName = `${p.apellido ?? ""} ${p.nombre ?? ""}`.toLowerCase();
-              return (
-                fullName.includes(search) ||
-                String(p.matricula ?? "").toLowerCase().includes(search)
-              );
-            });
+      log("Query OK. Cantidad:", data?.length);
 
-      const mapped = (filtered ?? []).map(mapProfesionalRow);
+      const mapped = (data ?? []).map(mapProfesionalRow);
+
+      log("Finalizando GET profesionales OK");
       return res.status(200).json(mapped);
     }
 
-    // POST /api/admin/profesionales
     if (req.method === "POST") {
+      log("Procesando POST profesional...");
+      log("Body recibido:", req.body);
+
       assertAdmin(req);
 
       const body = req.body as Partial<Profesional>;
 
       if (!body.matricula || !body.apellido || !body.nombre) {
+        log("ERROR: Campos faltantes");
         return res.status(400).json({ error: "MISSING_FIELDS" });
       }
 
@@ -136,6 +169,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         notas_internas: body.notasInternas ?? null,
       };
 
+      log("Payload final POST:", payload);
+
       const { data, error } = await supabaseAdmin
         .from("profesionales")
         .insert(payload)
@@ -143,20 +178,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .single();
 
       if (error) {
-        console.error("[POST /api/admin/profesionales] DB_ERROR", error);
+        log("ERROR DB POST:", error);
         return res.status(500).json({ error: "DB_ERROR" });
       }
+
+      log("Insert OK:", data.id);
 
       const mapped = mapProfesionalRow(data);
       return res.status(201).json(mapped);
     }
 
-    // Métodos no permitidos
+    log("ERROR método no permitido:", req.method);
     res.setHeader("Allow", "GET,POST,OPTIONS");
     return res.status(405).json({ error: "METHOD_NOT_ALLOWED" });
   } catch (err: any) {
-    console.error("[/api/admin/profesionales] UNHANDLED", err);
+    log("ERROR general:", err);
     const status = err.statusCode || 500;
-    return res.status(status).json({ error: err.message || "UNKNOWN_ERROR" });
+    return res.status(status).json({ error: err.message });
   }
 }
