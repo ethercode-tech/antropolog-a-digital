@@ -25,7 +25,7 @@ export function Footer() {
               <h3 className="font-serif font-semibold text-lg">Colegio de Antropología</h3>
             </div>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
-              Institución que regula el ejercicio profesional de la antropología en Jujuy.
+              Institución que agrupa a los profesionales de la antropología, promoviendo el ejercicio ético y el desarrollo de la disciplina.
             </p>
           </div>
 
