@@ -309,6 +309,71 @@ export async function createMatriculacionSolicitud(solicitud: {
   return { success: true };
 }
 
+
+export async function getUltimaFacturaPorMatricula(
+  matricula: string
+): Promise<
+  | { profesional: ProfesionalPublico; factura: Factura | null }
+  | null
+> {
+  // Buscar profesional por matrícula
+  const { data: prof, error: errProf } = await supabase
+    .from("profesionales")
+    .select("id, nombre, apellido, matricula")
+    .ilike("matricula", matricula)
+    .maybeSingle();
+
+  if (errProf) {
+    console.error("[getUltimaFacturaPorMatricula] error profesional:", errProf);
+    return null;
+  }
+
+  if (!prof) return null;
+
+  const profesional: ProfesionalPublico = {
+    id: prof.id,
+    nombre: prof.apellido && prof.nombre ? `${prof.apellido}, ${prof.nombre}` : (prof.nombre ?? ""),
+    matricula: prof.matricula,
+    tipo: "Licenciado",
+    especialidad: "",
+    lugarTrabajo: "",
+    estadoMatricula: "Activa"
+  };
+
+  // Última factura
+  const { data: facturaRow, error: errFact } = await supabase
+    .from("profesional_facturas")
+    .select("id, numero, fecha_emision, periodo, importe, url_pdf")
+    .eq("profesional_id", prof.id)
+    .order("fecha_emision", { ascending: false })
+    .order("creado_en", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (errFact) {
+    console.error("[getUltimaFacturaPorMatricula] error factura:", errFact);
+    return { profesional, factura: null };
+  }
+
+  if (!facturaRow) {
+    return { profesional, factura: null };
+  }
+
+  const factura: Factura = {
+    id: facturaRow.id,
+    numero: facturaRow.numero,
+    fechaEmision: facturaRow.fecha_emision,
+    periodo: facturaRow.periodo,
+    importe: Number(facturaRow.importe),
+    urlPdf: facturaRow.url_pdf,
+    profesionalId: "",
+    concepto: "",
+    estado: ""
+  };
+
+  return { profesional, factura };
+}
+
 // -----------------------------
 // News, Documents, Gallery (mantener mocks por ahora)
 // -----------------------------
