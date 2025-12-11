@@ -26,6 +26,7 @@ const navItems = [
   // { href: "/admin/usuarios", label: "Usuarios", icon: Users },
   { href: "/admin/matriculacion", label: "Matriculación", icon: FileText },
   { href: "/admin/deudas", label: "Deudas", icon: FileText },
+  { href: "/admin/consultas", label: "Consultas generales", icon: FileText },
   // { href: "/admin/constancias", label: "Constancias", icon: FileText },
   { href: "/admin/facturas", label: "Facturas", icon: FileText },
   { href: "/admin/noticias", label: "Noticias", icon: Newspaper },

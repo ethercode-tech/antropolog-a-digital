@@ -41,6 +41,7 @@ import AdminFacturas from "./pages/admin/AdminFacturas";
 import AdminDeudas from "./pages/admin/AdminDeudas";
 import AdminFacturaForm from "./pages/admin/AdminFacturaForm";
 import AdminDeudaForm from "./pages/admin/AdminDeudaForm";
+import AdminContactos from "./pages/admin/AdminContactos";
 // import AdminUsuarios from "./pages/admin/AdminUsuarios";
 // import AdminUsuarioForm from "./pages/admin/AdminUsuarioForm";
 
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="matriculacion/:id" element={<AdminMatriculacionDetalle />} />
             {/* <Route path="constancias" element={<AdminConstancias />} /> */}
             <Route path="facturas" element={<AdminFacturas />} />
+            <Route path="consultas" element={<AdminContactos />} />
             <Route path="facturas/nueva" element={<AdminFacturaForm />} />
             {/* <Route path="usuarios" element={<AdminUsuarios />} />
             <Route path="usuarios/nuevo" element={<AdminUsuarioForm />} /> */}

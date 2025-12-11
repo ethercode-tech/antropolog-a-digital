@@ -95,18 +95,36 @@ export function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-primary-foreground/20">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-primary-foreground/60 text-sm">
-              © {new Date().getFullYear()} Colegio de Antropología de Jujuy. Todos los derechos reservados.
-            </p>
-            <Link
-              to="/admin/login"
-              className="text-primary-foreground/40 hover:text-primary-foreground/60 text-xs transition-colors"
+
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+
+          <p className="text-primary-foreground/60 text-sm flex items-center gap-2">
+            © {new Date().getFullYear()} Colegio de Antropología de Jujuy
+            <span className="opacity-50">•</span>
+            Hecho en Jujuy 
+            <span className="inline-block">🌵</span>
+            por 
+            <a
+              href="https://ethercode.com.ar"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline-offset-2 hover:underline text-primary-foreground/70 ml-1"
             >
-              Acceso administrador
-            </Link>
-          </div>
+              EtherCode
+            </a>
+          </p>
+
+          <a
+            href="/admin/login"
+            className="text-primary-foreground/40 hover:text-primary-foreground/60 text-xs transition-colors"
+          >
+            Acceso administrador
+          </a>
+
         </div>
+        </div>
+
+
       </div>
     </footer>
   );

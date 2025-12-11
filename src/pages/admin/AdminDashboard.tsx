@@ -127,6 +127,12 @@ const quickActions: QuickActionConfig[] = [
     icon: Image,
     description: "Actualizar la galería institucional",
   },
+  {
+    label: "Consultas Generales",
+    href: "/admin/consultas",
+    icon: Image,
+    description: "Consultas generales enviadas en formulario de contacto",
+  },
 ];
 
 export default function AdminDashboard() {
@@ -181,6 +187,13 @@ export default function AdminDashboard() {
       label: "Imágenes",
       href: "/admin/galeria",
       icon: Image,
+      color: "bg-amber-500/10 text-amber-500",
+      value: dashboardStats?.totalImagenes,
+    },
+    {
+      label: "Consultas generales",
+      href: "/admin/consultas",
+      icon: FileText,
       color: "bg-amber-500/10 text-amber-500",
       value: dashboardStats?.totalImagenes,
     },
