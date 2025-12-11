@@ -13,6 +13,11 @@ export default function Historia() {
         </div>
       </section>
 
+        <img
+    src="/logo/logo.conletras.principal.svg"
+    alt="Colegio de Antropología"
+    className="w-80 h-32 md:w-80 md:h-32 object-contain mx-auto mt-4"
+  />
       {/* Content */}
       <section className="py-16 md:py-24">
         <div className="container-main">
@@ -27,6 +32,7 @@ export default function Historia() {
                   Durante sus primeros años, el Colegio se concentró en establecer las bases institucionales, definir los principios éticos de la profesión y promover el reconocimiento legal del ejercicio profesional de la antropología.
                 </p>
               </CardContent>
+
             </Card>
 
             <Card className="mb-8">

@@ -171,14 +171,18 @@ export function Header() {
             className="flex items-center gap-3 group shrink-0"
             onClick={closeAllMenus}
           >
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary flex items-center justify-center transition-transform group-hover:scale-105">
-              <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
-            </div>
+            {/* <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary flex items-center justify-center transition-transform group-hover:scale-105"> */}
+            <img
+    src="/logo/logo.sinletras.principal.svg"
+    alt="Colegio de Antropología"
+    className="w-14 h-10 md:w-12 md:h-12 object-contain"
+  />
+            {/* </div> */}
             <div className="hidden sm:block">
-              <h1 className="font-serif font-semibold text-lg md:text-xl text-foreground leading-tight">
+              <h1 className="font-serif font-semibold text-lg md:text-xl text-primary leading-tight">
                 Colegio de Antropología
               </h1>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Portal de servicios profesionales
               </p>
             </div>
