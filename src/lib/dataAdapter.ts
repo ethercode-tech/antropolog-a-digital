@@ -377,8 +377,31 @@ export async function getUltimaFacturaPorMatricula(
 // -----------------------------
 // News, Documents, Gallery (mantener mocks por ahora)
 // -----------------------------
-export async function getNews(): Promise<News[]> {
-  return mockNews;
+export async function getNews(limit?: number): Promise<News[]> {
+  let query = supabase
+    .from("news") // o "noticias" si así se llama tu tabla
+    .select("id, title, content, excerpt, image_url, published_at")
+    .order("published_at", { ascending: false });
+
+  if (limit && limit > 0) {
+    query = query.limit(limit);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("[getNews] error:", error);
+    return [];
+  }
+
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    title: row.title,
+    content: row.content,
+    excerpt: row.excerpt,
+    imageUrl: row.image_url || undefined,
+    publishedAt: row.published_at,
+  }));
 }
 
 export async function getDocuments(): Promise<DocumentT[]> {

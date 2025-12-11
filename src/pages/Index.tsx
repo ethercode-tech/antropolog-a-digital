@@ -12,7 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { NewsCard } from "@/components/ui/NewsCard";
-import { mockNews } from "@/lib/dataAdapter";
+import { getNews, mockNews } from "@/lib/dataAdapter";
+import { useQuery } from "@tanstack/react-query";
 
 const professionalShortcuts = [
   {
@@ -70,30 +71,38 @@ const infoBlocks = [
 ];
 
 export default function Index() {
-  const latestNews = mockNews.slice(0, 3);
+  const {
+    data: latestNews = [],
+    isLoading: isLoadingNews,
+    isError: isErrorNews,
+  } = useQuery({
+    queryKey: ["public-news-home"],
+    queryFn: () => getNews(3),
+  });
 
   return (
     <div className="animate-fade-in">
       {/* Hero funcional */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-primary-foreground/30 py-16 md:py-24">
-        <div className="absolute inset-0 opacity-15 bg-[radial-gradient(circle_at_top,_#ffffff_0,_transparent_55%)]" />
+      <section className="relative bg-[image:var(--hero-gradient)] py-20 md:py-32 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1920&h=1080&fit=crop')] bg-cover bg-center opacity-20" />
         <div className="container-main relative z-10">
-          <div className="max-w-3xl space-y-6">
-            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground leading-tight">
+          <div className="max-w-3xl">
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6 leading-tight animate-fade-in-up">
               Portal de servicios del Colegio de Antropología
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-primary-foreground/90 leading-relaxed">
+            <p
+              className="text-lg md:text-xl text-primary-foreground/90 mb-8 leading-relaxed animate-fade-in-up"
+              style={{ animationDelay: "0.1s" }}
+            >
               Acceso centralizado a trámites en línea, padrón de profesionales,
-              consulta de deuda, descarga de facturas y gestiones institucionales,
-              pensado para que los matriculados resuelvan todo desde un solo lugar.
+              constancias, facturación y gestiones institucionales. Diseñado para
+              que los matriculados encuentren todo en un solo lugar.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <Button
-                asChild
-                size="lg"
-                variant="secondary"
-                className="font-semibold"
-              >
+            <div
+              className="flex flex-wrap gap-4 animate-fade-in-up"
+              style={{ animationDelay: "0.2s" }}
+            >
+              <Button asChild size="lg" variant="secondary" className="font-semibold">
                 <Link to="/tramites/matriculacion">
                   Iniciar trámite de matriculación
                   <ArrowRight className="w-4 h-4 ml-2" />
@@ -103,11 +112,9 @@ export default function Index() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="border-primary-foreground/40 text-primary-foreground bg-transparent hover:bg-primary-foreground/10"
+                className="bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
               >
-                <Link to="/tramites/facturas">
-                  Descargar última factura
-                </Link>
+                <Link to="/tramites/deuda">Consultar deuda y facturas</Link>
               </Button>
             </div>
           </div>
@@ -222,53 +229,97 @@ export default function Index() {
             </Button>
           </div>
 
-          <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {latestNews.map((news, index) => (
-              <div
-                key={news.id}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${index * 0.08}s` }}
-              >
-                <NewsCard news={news} />
-              </div>
-            ))}
-          </div>
+          {/* Loading */}
+          {isLoadingNews && (
+            <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-56 rounded-xl bg-muted/60 animate-pulse"
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Error */}
+          {isErrorNews && !isLoadingNews && (
+            <p className="text-sm text-red-500">
+              Ocurrió un problema al cargar las noticias. Intente nuevamente más tarde.
+            </p>
+          )}
+
+          {/* Noticias reales */}
+          {!isLoadingNews && !isErrorNews && latestNews.length > 0 && (
+            <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {latestNews.map((news, index) => (
+                <div
+                  key={news.id}
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${index * 0.08}s` }}
+                >
+                  <NewsCard news={news} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Sin noticias */}
+          {!isLoadingNews && !isErrorNews && latestNews.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Todavía no hay noticias publicadas en el portal.
+            </p>
+          )}
         </div>
       </section>
+
 
       {/* CTA final */}
       <section className="py-14 md:py-20">
         <div className="container-main">
-          <Card className="bg-accent text-accent-foreground overflow-hidden">
+          <Card className="bg-[#5A3E2B] text-white overflow-hidden">
             <CardContent className="p-7 sm:p-8 md:p-10 text-center space-y-4 md:space-y-6">
+
               <h2 className="font-serif text-xl sm:text-2xl md:text-3xl font-semibold">
                 ¿Necesitás gestionar tu situación como profesional?
               </h2>
-              <p className="text-sm sm:text-base text-accent-foreground/80 max-w-2xl mx-auto">
-                Iniciá tu matriculación, consultá tu deuda y descargá tu última
-                factura desde el portal de trámites en línea, sin desplazarte y
-                con soporte institucional cuando lo necesites.
+
+              <p className="text-sm sm:text-base text-white/80 max-w-2xl mx-auto">
+                Iniciá tu matriculación, consultá tu deuda y descargá tu última factura
+                desde el portal de trámites en línea, sin desplazarte y con soporte institucional cuando lo necesites.
               </p>
+
               <div className="flex flex-wrap justify-center gap-3">
+
+                {/* Botón principal que contrasta */}
                 <Button
                   asChild
                   size="lg"
-                  className="bg-primary-foreground text-accent hover:bg-primary-foreground/90"
+                  className="bg-[#F2E6D8] text-[#5A3E2B] font-semibold hover:bg-[#e8d9c8]"
                 >
                   <Link to="/tramites/matriculacion">
                     Trámite de matriculación
                   </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline">
+
+                {/* Botón secundario outline, visible sobre marrón */}
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border-white text-black hover:bg-white/10"
+                >
                   <Link to="/tramites/deuda">
                     Consulta de deuda y facturas
                   </Link>
                 </Button>
+
               </div>
+
             </CardContent>
           </Card>
         </div>
       </section>
+
     </div>
   );
 }
