@@ -39,6 +39,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -47,12 +54,30 @@ type EstadoDeuda = "pagado" | "pendiente";
 type DeudaRow = {
   id: string;
   profesionalId: string;
+  periodo: string; // "YYYY-MM"
+  concepto: string;
+  monto: number;
+  estado: EstadoDeuda;
+  fechaVencimiento?: string | null; // date
+  fechaPago?: string | null;        // date
+};
+
+type DeudaUpdatePayload = {
   periodo: string;
   concepto: string;
   monto: number;
   estado: EstadoDeuda;
-  fechaVencimiento?: string | null;
-  fechaPago?: string | null;
+  fechaVencimiento: string | null;
+  fechaPago: string | null;
+};
+
+type DeudaFormState = {
+  periodo: string;
+  concepto: string;
+  monto: string;
+  estado: EstadoDeuda;
+  fechaVencimiento: string;
+  fechaPago: string;
 };
 
 type ProfesionalOption = {
@@ -118,6 +143,30 @@ async function deleteDeudaRequest(id: string): Promise<void> {
   }
 }
 
+async function updateDeudaRequest(params: {
+  id: string;
+  data: DeudaUpdatePayload;
+}): Promise<void> {
+  const { id, data } = params;
+
+  const { error } = await supabase
+    .from("profesional_deudas")
+    .update({
+      periodo: data.periodo,
+      concepto: data.concepto,
+      monto: data.monto,
+      estado: data.estado,
+      fecha_vencimiento: data.fechaVencimiento,
+      fecha_pago: data.fechaPago,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("[AdminDeudas] updateDeuda error:", error);
+    throw new Error("No se pudo actualizar la deuda");
+  }
+}
+
 // ───────────────────────────────
 // Page
 // ───────────────────────────────
@@ -166,9 +215,42 @@ export default function AdminDeudas() {
     },
   });
 
+  const updateDeuda = useMutation({
+    mutationFn: updateDeudaRequest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-deudas"] });
+      toast({
+        title: "Deuda actualizada",
+        description: "El registro de deuda se actualizó correctamente",
+      });
+    },
+    onError: (err: unknown) => {
+      toast({
+        title: "Error al actualizar",
+        description:
+          err instanceof Error
+            ? err.message
+            : "Ocurrió un error al actualizar la deuda",
+        variant: "destructive",
+      });
+    },
+  });
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filterEstado, setFilterEstado] = useState<string>("todos");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Estado para modal de edición
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingDeuda, setEditingDeuda] = useState<DeudaRow | null>(null);
+  const [formState, setFormState] = useState<DeudaFormState>({
+    periodo: "",
+    concepto: "",
+    monto: "",
+    estado: "pendiente",
+    fechaVencimiento: "",
+    fechaPago: "",
+  });
 
   const profById = useMemo(() => {
     const map = new Map<string, ProfesionalOption>();
@@ -215,6 +297,70 @@ export default function AdminDeudas() {
     if (!deleteId) return;
     await deleteDeuda.mutateAsync(deleteId);
     setDeleteId(null);
+  };
+
+  const handleOpenEdit = (deuda: DeudaRow) => {
+    setEditingDeuda(deuda);
+    setFormState({
+      periodo: deuda.periodo, // "YYYY-MM"
+      concepto: deuda.concepto,
+      monto: deuda.monto.toString(),
+      estado: deuda.estado,
+      fechaVencimiento: deuda.fechaVencimiento ?? "",
+      fechaPago: deuda.fechaPago ?? "",
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditInputChange =
+    (field: keyof DeudaFormState) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      const value = e.target.value;
+      setFormState((prev) => ({
+        ...prev,
+        [field]: value as any,
+      }));
+    };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingDeuda) return;
+
+    if (!formState.periodo || !formState.monto) {
+      toast({
+        title: "Campos requeridos",
+        description: "Período y monto son obligatorios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const montoNumber = parseFloat(formState.monto);
+    if (Number.isNaN(montoNumber) || montoNumber < 0) {
+      toast({
+        title: "Monto inválido",
+        description: "Ingrese un monto numérico válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const payload: DeudaUpdatePayload = {
+      periodo: formState.periodo,
+      concepto: formState.concepto || "Cuota mensual",
+      monto: montoNumber,
+      estado: formState.estado,
+      fechaVencimiento: formState.fechaVencimiento || null,
+      fechaPago: formState.fechaPago || null,
+    };
+
+    await updateDeuda.mutateAsync({
+      id: editingDeuda.id,
+      data: payload,
+    });
+
+    setEditDialogOpen(false);
+    setEditingDeuda(null);
   };
 
   if (isLoadingDeudas || isLoadingProfes) {
@@ -360,11 +506,13 @@ export default function AdminDeudas() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Link to={`/admin/deudas/${deuda.id}`}>
-                          <Button variant="outline" size="sm">
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                        </Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenEdit(deuda)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
@@ -413,16 +561,15 @@ export default function AdminDeudas() {
                   ${deuda.monto.toLocaleString()}
                 </p>
                 <div className="flex gap-2">
-                  <Link to={`/admin/deudas/${deuda.id}`} className="flex-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                    >
-                      <Pencil className="w-4 h-4 mr-2" />
-                      Editar
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleOpenEdit(deuda)}
+                  >
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Editar
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
@@ -443,6 +590,7 @@ export default function AdminDeudas() {
         </CardContent>
       </Card>
 
+      {/* Modal eliminación */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -453,7 +601,9 @@ export default function AdminDeudas() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteDeuda.isPending}>
+              Cancelar
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleteDeuda.isPending}
@@ -463,6 +613,143 @@ export default function AdminDeudas() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal edición */}
+      <Dialog
+        open={editDialogOpen}
+        onOpenChange={(open) => {
+          setEditDialogOpen(open);
+          if (!open) setEditingDeuda(null);
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Editar deuda</DialogTitle>
+            <DialogDescription>
+              Actualizá los datos de la cuota seleccionada. El profesional no se modifica desde aquí.
+            </DialogDescription>
+          </DialogHeader>
+
+          {editingDeuda && (
+            <form
+              onSubmit={handleEditSubmit}
+              className="space-y-5 mt-2"
+            >
+              <div className="space-y-1 text-sm">
+                <p className="font-medium">
+                  {getProfesionalName(editingDeuda.profesionalId)}
+                </p>
+                <p className="text-muted-foreground">
+                  Matrícula: {getProfesionalMatricula(editingDeuda.profesionalId)}
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium" htmlFor="periodo">
+                    Período
+                  </label>
+                  <Input
+                    id="periodo"
+                    type="month"
+                    value={formState.periodo}
+                    onChange={handleEditInputChange("periodo")}
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium" htmlFor="monto">
+                    Monto
+                  </label>
+                  <Input
+                    id="monto"
+                    type="number"
+                    step="0.01"
+                    value={formState.monto}
+                    onChange={handleEditInputChange("monto")}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium" htmlFor="concepto">
+                  Concepto
+                </label>
+                <Input
+                  id="concepto"
+                  value={formState.concepto}
+                  onChange={handleEditInputChange("concepto")}
+                  placeholder="Cuota mensual"
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium" htmlFor="estado">
+                    Estado
+                  </label>
+                  <select
+                    id="estado"
+                    className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    value={formState.estado}
+                    onChange={handleEditInputChange("estado")}
+                  >
+                    <option value="pendiente">Pendiente</option>
+                    <option value="pagado">Pagado</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label
+                    className="text-sm font-medium"
+                    htmlFor="fechaVencimiento"
+                  >
+                    Fecha de vencimiento
+                  </label>
+                  <Input
+                    id="fechaVencimiento"
+                    type="date"
+                    value={formState.fechaVencimiento}
+                    onChange={handleEditInputChange("fechaVencimiento")}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm font-medium" htmlFor="fechaPago">
+                  Fecha de pago
+                </label>
+                <Input
+                  id="fechaPago"
+                  type="date"
+                  value={formState.fechaPago}
+                  onChange={handleEditInputChange("fechaPago")}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setEditDialogOpen(false);
+                    setEditingDeuda(null);
+                  }}
+                  disabled={updateDeuda.isPending}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={updateDeuda.isPending}
+                >
+                  {updateDeuda.isPending ? "Guardando…" : "Guardar cambios"}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

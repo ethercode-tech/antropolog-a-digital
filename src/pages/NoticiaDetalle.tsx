@@ -1,11 +1,42 @@
+// src/pages/NoticiaDetalle.tsx
 import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Calendar } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { mockNews } from "@/lib/dataAdapter";
+import { supabase } from "@/integrations/supabase/client";
+import type { NewsItem } from "@/lib/types/news";
+import { mapRowToNewsItem } from "@/lib/types/news";
+
+async function fetchNewsById(id: string): Promise<NewsItem | null> {
+  const { data, error } = await supabase
+    .from("news")
+    .select("id, title, slug, excerpt, content, image_url, published_at, is_published")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[NoticiaDetalle] fetchNewsById error:", error);
+    throw new Error("No se pudo cargar la noticia");
+  }
+
+  if (!data) return null;
+  return mapRowToNewsItem(data);
+}
 
 export default function NoticiaDetalle() {
   const { id } = useParams<{ id: string }>();
-  const news = mockNews.find((n) => n.id === id);
+
+  const {
+    data: news,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["news-detail", id],
+    queryFn: () => fetchNewsById(id || ""),
+    enabled: !!id,
+  });
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("es-ES", {
@@ -15,11 +46,35 @@ export default function NoticiaDetalle() {
     });
   };
 
+  if (isLoading) {
+    return (
+      <div className="container-main py-24 text-center text-muted-foreground">
+        Cargando noticia…
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="container-main py-24 text-center">
+        <h1 className="section-title">Error al cargar la noticia</h1>
+        <p className="text-muted-foreground mb-6">
+          {(error as Error)?.message || "Intenta nuevamente en unos minutos."}
+        </p>
+        <Button asChild>
+          <Link to="/noticias">Volver a noticias</Link>
+        </Button>
+      </div>
+    );
+  }
+
   if (!news) {
     return (
       <div className="container-main py-24 text-center">
         <h1 className="section-title">Noticia no encontrada</h1>
-        <p className="text-muted-foreground mb-6">La noticia que buscas no existe o ha sido eliminada.</p>
+        <p className="text-muted-foreground mb-6">
+          La noticia que buscas no existe o ha sido eliminada.
+        </p>
         <Button asChild>
           <Link to="/noticias">Volver a noticias</Link>
         </Button>
@@ -29,7 +84,7 @@ export default function NoticiaDetalle() {
 
   return (
     <div className="animate-fade-in">
-      {/* Header */}
+      {/* Header simple con back */}
       <section className="bg-secondary py-8">
         <div className="container-main">
           <Button variant="ghost" asChild className="mb-4">
@@ -48,7 +103,9 @@ export default function NoticiaDetalle() {
             {/* Meta */}
             <div className="flex items-center gap-2 text-muted-foreground mb-4">
               <Calendar className="w-4 h-4" />
-              <time dateTime={news.publishedAt}>{formatDate(news.publishedAt)}</time>
+              <time dateTime={news.publishedAt}>
+                {formatDate(news.publishedAt)}
+              </time>
             </div>
 
             {/* Title */}
@@ -69,11 +126,17 @@ export default function NoticiaDetalle() {
 
             {/* Content */}
             <div className="prose prose-lg max-w-none">
-              {news.content.split("\n\n").map((paragraph, index) => (
-                <p key={index} className="text-foreground/80 leading-relaxed mb-4">
-                  {paragraph}
-                </p>
-              ))}
+              {news.content
+                .split("\n\n")
+                .filter(Boolean)
+                .map((paragraph, index) => (
+                  <p
+                    key={index}
+                    className="text-foreground/80 leading-relaxed mb-4"
+                  >
+                    {paragraph}
+                  </p>
+                ))}
             </div>
 
             {/* Back button */}
