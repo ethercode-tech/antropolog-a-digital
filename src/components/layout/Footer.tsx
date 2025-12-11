@@ -113,13 +113,13 @@ export function Footer() {
               EtherCode
             </a>
           </p>
-
+{/* 
           <a
             href="/admin/login"
             className="text-primary-foreground/40 hover:text-primary-foreground/60 text-xs transition-colors"
           >
             Acceso administrador
-          </a>
+          </a> */}
 
         </div>
         </div>

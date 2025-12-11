@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   AlertTriangle,
   Pencil,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -59,6 +61,13 @@ type SolicitudEstado =
   | "aprobado"
   | "rechazado";
 
+type SolicitudDocumento = {
+  id: string;
+  nombre: string;
+  tipo?: string | null;
+  url: string;
+};
+
 type SolicitudMatriculacion = {
   id: string;
   dni: string;
@@ -71,6 +80,7 @@ type SolicitudMatriculacion = {
   numeroMatriculaAsignado: string | null;
   profesionalId: string | null;
   creadoEn: string;
+  documentos?: SolicitudDocumento[];
 };
 
 // ───────────────────────────────
@@ -128,6 +138,13 @@ function mapFormToDbPayload(form: ProfesionalFormState) {
   };
 }
 
+type RawSolicitudDocumentoFromDb = {
+  path: string;
+  size: number;
+  tipo: string | null;
+  bucket: string;
+  nombre_original: string | null;
+};
 // ───────────────────────────────
 // Data access directo a Supabase
 // ───────────────────────────────
@@ -157,20 +174,42 @@ async function fetchSolicitudesMatriculacion(): Promise<SolicitudMatriculacion[]
     throw new Error("No se pudieron cargar las solicitudes de matriculación");
   }
 
-  return (data ?? []).map((row: any) => ({
-    id: row.id,
-    dni: row.dni,
-    nombre: row.nombre,
-    email: row.email,
-    telefono: row.telefono,
-    especialidad: row.especialidad,
-    estado: row.estado as SolicitudEstado,
-    observaciones: row.observaciones ?? null,
-    numeroMatriculaAsignado: row.numero_matricula_asignado ?? null,
-    profesionalId: row.profesional_id ?? null,
-    creadoEn: row.creado_en,
-  }));
+  return (data ?? []).map((row: any) => {
+    const rawDocs = (row.documentos ?? []) as RawSolicitudDocumentoFromDb[];
+
+    const documentos: SolicitudDocumento[] = rawDocs.map((doc, index) => {
+      const { data: pub } = supabase.storage
+        .from(doc.bucket)
+        .getPublicUrl(doc.path);
+    
+      const publicUrl = pub?.publicUrl ?? "";
+    
+      return {
+        id: `${row.id}-${index}`,
+        nombre: doc.nombre_original || "Documento",
+        tipo: doc.tipo,
+        url: publicUrl, // Esto es lo que usarás en <a href={doc.url}>
+      };
+    });
+    
+
+    return {
+      id: row.id,
+      dni: row.dni,
+      nombre: row.nombre,
+      email: row.email,
+      telefono: row.telefono,
+      especialidad: row.especialidad,
+      estado: row.estado as SolicitudEstado,
+      observaciones: row.observaciones ?? null,
+      numeroMatriculaAsignado: row.numero_matricula_asignado ?? null,
+      profesionalId: row.profesional_id ?? null,
+      creadoEn: row.creado_en,
+      documentos,
+    };
+  });
 }
+
 
 async function createProfesionalRequest(
   payload: ProfesionalFormState
@@ -181,7 +220,7 @@ async function createProfesionalRequest(
     .from("profesionales")
     .insert(dbPayload)
     .select("*")
-    .single(); // devuelve exactamente una fila
+    .single();
 
   if (error) {
     console.error("[AdminMatriculacion] Error createProfesional:", error);
@@ -202,7 +241,7 @@ async function updateProfesionalRequest(params: {
     .update(dbPayload)
     .eq("id", params.id)
     .select("*")
-    .single(); // devuelve exactamente una fila
+    .single();
 
   if (error) {
     console.error("[AdminMatriculacion] Error updateProfesional:", error);
@@ -238,7 +277,6 @@ async function updateSolicitudRequest(params: {
     throw new Error("No se pudo actualizar la solicitud de matriculación");
   }
 }
-
 
 // ───────────────────────────────
 // Page
@@ -323,6 +361,7 @@ export default function AdminMatriculacion() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formMode, setFormMode] = useState<FormMode>("create");
   const [editingId, setEditingId] = useState<string | null>(null);
+
   const [solicitudDialogOpen, setSolicitudDialogOpen] = useState(false);
   const [solicitudSeleccionada, setSolicitudSeleccionada] =
     useState<SolicitudMatriculacion | null>(null);
@@ -372,7 +411,11 @@ export default function AdminMatriculacion() {
 
   const handleSolicitudChange =
     (field: keyof typeof solicitudForm) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >
+    ) => {
       const value = e.target.value;
       setSolicitudForm((prev) => ({
         ...prev,
@@ -380,102 +423,104 @@ export default function AdminMatriculacion() {
       }));
     };
 
-    const handleSolicitudSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!solicitudSeleccionada) return;
-    
-      // Regla de negocio: no se puede aprobar sin matrícula
-      if (
-        solicitudForm.estado === "aprobado" &&
-        !solicitudForm.numeroMatricula.trim()
-      ) {
+  const handleSolicitudSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!solicitudSeleccionada) return;
+
+    // Regla de negocio: no se puede aprobar sin matrícula
+    if (
+      solicitudForm.estado === "aprobado" &&
+      !solicitudForm.numeroMatricula.trim()
+    ) {
+      toast({
+        title: "Matrícula requerida",
+        description:
+          "No podés marcar la solicitud como aprobada sin asignar una matrícula.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Si se aprueba y todavía no hay profesional vinculado, lo creamos
+    if (
+      solicitudForm.estado === "aprobado" &&
+      !solicitudSeleccionada.profesionalId
+    ) {
+      // separar nombre completo en nombre / apellido de forma simple
+      const parts = solicitudSeleccionada.nombre.trim().split(" ");
+      const apellido = parts.length > 1 ? parts[parts.length - 1] : "";
+      const nombre =
+        parts.length > 1
+          ? parts.slice(0, parts.length - 1).join(" ")
+          : parts[0];
+
+      const nuevoProfesionalPayload: ProfesionalFormState = {
+        matricula: solicitudForm.numeroMatricula.trim(),
+        apellido,
+        nombre,
+        tipo: "licenciado",
+        especialidadPrincipal: solicitudSeleccionada.especialidad,
+        otrasEspecialidades: "",
+        lugarTrabajo: "",
+        institucion: "",
+        localidad: "",
+        provincia: "",
+        email: solicitudSeleccionada.email,
+        telefono: solicitudSeleccionada.telefono,
+        estadoMatricula: "activa",
+        habilitadoEjercer: true,
+        tieneDeuda: false,
+        ultimoPeriodoPago: "",
+        cvPdfUrl: "",
+        notasInternas: "",
+        solicitudMatriculacionId: solicitudSeleccionada.id,
+      };
+
+      // 1) Creamos el profesional en la tabla general
+      const nuevoProfesional = await createProfesional.mutateAsync(
+        nuevoProfesionalPayload
+      );
+
+      // 2) Vinculamos la solicitud con ese profesional
+      const { error: linkError } = await supabase
+        .from("profesional_matriculacion_solicitudes")
+        .update({ profesional_id: nuevoProfesional.id })
+        .eq("id", solicitudSeleccionada.id);
+
+      if (linkError) {
+        console.error(
+          "[AdminMatriculacion] Error link solicitud→profesional:",
+          linkError
+        );
         toast({
-          title: "Matrícula requerida",
+          title: "Profesional creado, pero hubo un problema al vincular",
           description:
-            "No podés marcar la solicitud como aprobada sin asignar una matrícula.",
+            "Revisá manualmente la solicitud, el profesional ya fue creado.",
           variant: "destructive",
         });
-        return;
       }
-    
-      // Si se aprueba y todavía no hay profesional vinculado, lo creamos
-      if (
-        solicitudForm.estado === "aprobado" &&
-        !solicitudSeleccionada.profesionalId
-      ) {
-        // separar nombre completo en nombre / apellido de forma simple
-        const parts = solicitudSeleccionada.nombre.trim().split(" ");
-        const apellido =
-          parts.length > 1 ? parts[parts.length - 1] : "";
-        const nombre =
-          parts.length > 1 ? parts.slice(0, parts.length - 1).join(" ") : parts[0];
-    
-        const nuevoProfesionalPayload: ProfesionalFormState = {
-          matricula: solicitudForm.numeroMatricula.trim(),
-          apellido,
-          nombre,
-          tipo: "licenciado", // o lo que corresponda por defecto
-          especialidadPrincipal: solicitudSeleccionada.especialidad,
-          otrasEspecialidades: "",
-          lugarTrabajo: "",
-          institucion: "",
-          localidad: "",
-          provincia: "",
-          email: solicitudSeleccionada.email,
-          telefono: solicitudSeleccionada.telefono,
-          estadoMatricula: "activa",
-          habilitadoEjercer: true,
-          tieneDeuda: false,
-          ultimoPeriodoPago: "",
-          cvPdfUrl: "",
-          notasInternas: "",
-          solicitudMatriculacionId: solicitudSeleccionada.id,
-        };
-    
-        // 1) Creamos el profesional en la tabla general
-        const nuevoProfesional = await createProfesional.mutateAsync(
-          nuevoProfesionalPayload
-        );
-    
-        // 2) Vinculamos la solicitud con ese profesional
-        const { error: linkError } = await supabase
-          .from("profesional_matriculacion_solicitudes")
-          .update({ profesional_id: nuevoProfesional.id })
-          .eq("id", solicitudSeleccionada.id);
-    
-        if (linkError) {
-          console.error("[AdminMatriculacion] Error link solicitud→profesional:", linkError);
-          toast({
-            title: "Profesional creado, pero hubo un problema al vincular",
-            description:
-              "Revisá manualmente la solicitud, el profesional ya fue creado.",
-            variant: "destructive",
-          });
-        }
-      }
-    
-      // 3) Actualizamos el estado / observaciones / matrícula de la solicitud
-      await updateSolicitud.mutateAsync({
-        id: solicitudSeleccionada.id,
-        data: {
-          estado: solicitudForm.estado,
-          numeroMatriculaAsignado: solicitudForm.numeroMatricula.trim() || null,
-          observaciones: solicitudForm.observaciones.trim() || null,
-        },
-      });
-    
-      // 4) Refrescamos ambas listas
-      queryClient.invalidateQueries({
-        queryKey: ["admin-matriculacion-solicitudes"],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["admin-profesionales"],
-      });
-    
-      setSolicitudDialogOpen(false);
-    };
-    
+    }
 
+    // 3) Actualizamos el estado / observaciones / matrícula de la solicitud
+    await updateSolicitud.mutateAsync({
+      id: solicitudSeleccionada.id,
+      data: {
+        estado: solicitudForm.estado,
+        numeroMatriculaAsignado: solicitudForm.numeroMatricula.trim() || null,
+        observaciones: solicitudForm.observaciones.trim() || null,
+      },
+    });
+
+    // 4) Refrescamos ambas listas
+    queryClient.invalidateQueries({
+      queryKey: ["admin-matriculacion-solicitudes"],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["admin-profesionales"],
+    });
+
+    setSolicitudDialogOpen(false);
+  };
 
   const [formState, setFormState] = useState<ProfesionalFormState>({
     matricula: "",
@@ -569,12 +614,12 @@ export default function AdminMatriculacion() {
 
   // Crear profesional desde una solicitud
   const handleCreateFromSolicitud = (solicitud: SolicitudMatriculacion) => {
-    // Partir nombre completo en nombre / apellido de forma básica
     const parts = solicitud.nombre.trim().split(" ");
-    const apellido =
-      parts.length > 1 ? parts[parts.length - 1] : "";
+    const apellido = parts.length > 1 ? parts[parts.length - 1] : "";
     const nombre =
-      parts.length > 1 ? parts.slice(0, parts.length - 1).join(" ") : parts[0];
+      parts.length > 1
+        ? parts.slice(0, parts.length - 1).join(" ")
+        : parts[0];
 
     resetForm();
     setFormState((prev) => ({
@@ -585,7 +630,6 @@ export default function AdminMatriculacion() {
       telefono: solicitud.telefono,
       especialidadPrincipal: solicitud.especialidad,
       solicitudMatriculacionId: solicitud.id,
-      // El resto queda vacío por ahora, el admin completa
     }));
     setFormMode("create");
     setDialogOpen(true);
@@ -698,15 +742,16 @@ export default function AdminMatriculacion() {
         </Button>
       </div>
 
-      {/* Bloque de solicitudes de matriculación */}
+      {/* Dialog de revisión de solicitud */}
       <Dialog open={solicitudDialogOpen} onOpenChange={setSolicitudDialogOpen}>
         <DialogContent className="max-w-lg">
           <form onSubmit={handleSolicitudSubmit} className="space-y-4">
             <DialogHeader>
-              <DialogTitle>Revisión de solicitud</DialogTitle>
+              <DialogTitle>Solicitud de matriculación</DialogTitle>
               <DialogDescription>
-                Revisá los datos del formulario, asigná la matrícula y actualizá el
-                estado de la solicitud.
+                Revisá los datos y la documentación presentada. Desde aquí
+                podés asignar la matrícula y actualizar el estado de la
+                solicitud.
               </DialogDescription>
             </DialogHeader>
 
@@ -729,6 +774,44 @@ export default function AdminMatriculacion() {
                     Especialidad: {solicitudSeleccionada.especialidad || "-"}
                   </p>
                 </div>
+
+                {/* Documentación presentada */}
+                {Array.isArray(solicitudSeleccionada.documentos) &&
+                  solicitudSeleccionada.documentos.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold text-muted-foreground">
+                        Documentación presentada
+                      </p>
+                      <div className="rounded-md border border-border/60 bg-muted/40 p-2 space-y-1 max-h-40 overflow-y-auto">
+                        {solicitudSeleccionada.documentos.map((doc) => (
+                          <a
+                            key={doc.id}
+                            href={doc.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between gap-2 rounded-md px-2 py-1 text-xs hover:bg-background/60 transition-colors"
+                          >
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-3 h-3 text-primary" />
+                              <span className="font-medium text-foreground">
+                                {doc.nombre}
+                              </span>
+                              {doc.tipo && (
+                                <span className="text-[10px] text-muted-foreground border border-border/60 rounded-full px-2 py-0.5">
+                                  {doc.tipo}
+                                </span>
+                              )}
+                            </div>
+                            <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                          </a>
+                        ))}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        Hacé clic en cada documento para abrirlo en una nueva
+                        pestaña antes de aprobar o rechazar.
+                      </p>
+                    </div>
+                  )}
 
                 {/* Matrícula asignada */}
                 <div className="space-y-1">
@@ -792,7 +875,7 @@ export default function AdminMatriculacion() {
         </DialogContent>
       </Dialog>
 
-                    {/* Bloque de solicitudes de matriculación - LISTADO */}
+      {/* Bloque de solicitudes de matriculación - LISTADO */}
       <Card className="border-border mb-6">
         <CardContent className="p-4 md:p-5">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
@@ -893,7 +976,7 @@ export default function AdminMatriculacion() {
                             className="text-[11px] h-7 px-2"
                             onClick={() => openSolicitudDialog(s)}
                           >
-                            Aprobar / editar
+                            Ver solicitud
                           </Button>
 
                           {!s.profesionalId ? (
@@ -1094,7 +1177,7 @@ export default function AdminMatriculacion() {
         </CardContent>
       </Card>
 
-      {/* Modal alta/edición */}
+      {/* Modal alta/edición profesional */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-4xl p-0">
           <form
@@ -1188,7 +1271,9 @@ export default function AdminMatriculacion() {
                         <input
                           type="checkbox"
                           checked={formState.habilitadoEjercer}
-                          onChange={handleCheckboxChange("habilitadoEjercer")}
+                          onChange={handleCheckboxChange(
+                            "habilitadoEjercer"
+                          )}
                         />
                         Habilitado para ejercer
                       </label>
