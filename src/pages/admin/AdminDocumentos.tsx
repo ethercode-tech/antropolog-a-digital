@@ -1,6 +1,8 @@
-import { useState } from "react";
+// src/pages/admin/AdminDocumentos.tsx
 import { Link } from "react-router-dom";
 import { Plus, Pencil, Trash2, Calendar, FileText } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,15 +16,45 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { mockDocuments } from "@/lib/dataAdapter";
-import type { DocumentT as Document } from "@/lib/dataAdapter";
+import {
+  fetchAdminDocuments,
+  deleteDocument,
+  type DocumentRecord,
+} from "@/lib/dataAdapter";
+import { useState } from "react";
 
 export default function AdminDocumentos() {
   const { toast } = useToast();
-  const [documents, setDocuments] = useState<Document[]>(mockDocuments);
+  const queryClient = useQueryClient();
+
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const formatDate = (dateString: string) => {
+  const { data: documents = [], isLoading, isError } = useQuery({
+    queryKey: ["admin-documents"],
+    queryFn: fetchAdminDocuments,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteDocument(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-documents"] });
+      toast({
+        title: "Documento eliminado",
+        description: "El documento ha sido eliminado correctamente.",
+      });
+      setDeleteId(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error al eliminar",
+        description: error.message ?? "No se pudo eliminar el documento.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "Sin fecha";
     return new Date(dateString).toLocaleDateString("es-ES", {
       day: "numeric",
       month: "short",
@@ -30,16 +62,19 @@ export default function AdminDocumentos() {
     });
   };
 
-  const handleDelete = () => {
+  const handleConfirmDelete = () => {
     if (deleteId) {
-      setDocuments((prev) => prev.filter((d) => d.id !== deleteId));
-      toast({
-        title: "Documento eliminado",
-        description: "El documento ha sido eliminado correctamente.",
-      });
-      setDeleteId(null);
+      deleteMutation.mutate(deleteId);
     }
   };
+
+  if (isLoading) {
+    return <p>Cargando documentos…</p>;
+  }
+
+  if (isError) {
+    return <p>Ocurrió un error al cargar los documentos.</p>;
+  }
 
   return (
     <div className="animate-fade-in">
@@ -49,7 +84,7 @@ export default function AdminDocumentos() {
             Gestión de Documentos
           </h1>
           <p className="text-muted-foreground mt-1">
-            {documents.length} documentos publicados
+            {documents.length} documentos registrados
           </p>
         </div>
         <Button asChild>
@@ -60,11 +95,10 @@ export default function AdminDocumentos() {
         </Button>
       </div>
 
-      {/* Documents List */}
       <div className="space-y-4">
         {documents.map((doc, index) => (
-          <Card 
-            key={doc.id} 
+          <Card
+            key={doc.id}
             className="border-border animate-fade-in-up"
             style={{ animationDelay: `${index * 0.05}s` }}
           >
@@ -82,7 +116,12 @@ export default function AdminDocumentos() {
                   </p>
                   <div className="flex items-center gap-2 text-muted-foreground text-sm mt-1">
                     <Calendar className="w-4 h-4" />
-                    <time>{formatDate(doc.publishedAt)}</time>
+                    <time>{formatDate(doc.published_at)}</time>
+                    {!doc.is_public && (
+                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full border border-muted-foreground/40">
+                        No público
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -109,7 +148,9 @@ export default function AdminDocumentos() {
         {documents.length === 0 && (
           <Card className="border-border">
             <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground mb-4">No hay documentos publicados.</p>
+              <p className="text-muted-foreground mb-4">
+                No hay documentos registrados.
+              </p>
               <Button asChild>
                 <Link to="/admin/documentos/nuevo">
                   <Plus className="w-4 h-4 mr-2" />
@@ -121,7 +162,6 @@ export default function AdminDocumentos() {
         )}
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -132,7 +172,10 @@ export default function AdminDocumentos() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>

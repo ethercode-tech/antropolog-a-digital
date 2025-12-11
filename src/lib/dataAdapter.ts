@@ -401,3 +401,167 @@ export function getProfesionalByDni(dni: string) {
 export function getConstanciaByProfesional(profesionalId: string) {
   return pd.getConstanciaByProfesional?.(profesionalId);
 }
+
+
+export type DocumentRecord = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  category: string | null;
+  year: number | null;
+  bucket_id: string;
+  storage_path: string;
+  file_name: string;
+  mime_type: string | null;
+  file_size: number | null;
+  public_url: string | null;
+  is_public: boolean;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+};
+
+const TABLE = "documents";
+const BUCKET = "documentos";
+
+export function slugify(title: string) {
+  return title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// Admin: listar todos, sin filtro de is_public
+export async function fetchAdminDocuments(): Promise<DocumentRecord[]> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+// Público: solo is_public = true y published_at no nulo, ordenados
+export async function fetchPublicDocuments(): Promise<DocumentRecord[]> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("is_public", true)
+    .not("published_at", "is", null)
+    .order("published_at", { ascending: false });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function fetchDocumentById(id: string): Promise<DocumentRecord | null> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error && error.code !== "PGRST116") throw error;
+  return data ?? null;
+}
+
+// Subir archivo al bucket y devolver info
+export async function uploadDocumentFile(file: File) {
+  const timestamp = Date.now();
+  const safeName = file.name.replace(/\s+/g, "-").toLowerCase();
+  const path = `${timestamp}-${safeName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
+
+  if (uploadError) throw uploadError;
+
+  const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+
+  return {
+    storage_path: path,
+    file_name: file.name,
+    mime_type: file.type || "application/pdf",
+    file_size: file.size,
+    public_url: publicData.publicUrl,
+  };
+}
+
+type UpsertPayload = {
+  id?: string;
+  title: string;
+  description?: string;
+  publishedAt?: string | null;
+  isPublic?: boolean;
+  category?: string | null;
+  year?: number | null;
+  storageMeta?: {
+    storage_path: string;
+    file_name: string;
+    mime_type: string | null;
+    file_size: number | null;
+    public_url: string | null;
+  };
+};
+
+// Crear o actualizar documento
+export async function upsertDocument(payload: UpsertPayload): Promise<DocumentRecord> {
+  const {
+    id,
+    title,
+    description,
+    publishedAt,
+    isPublic = true,
+    category = null,
+    year = null,
+    storageMeta,
+  } = payload;
+
+  const slug = slugify(title);
+
+  const base: any = {
+    title,
+    slug,
+    description: description ?? null,
+    category,
+    year,
+    is_public: isPublic,
+    bucket_id: BUCKET,
+    published_at: publishedAt ? new Date(publishedAt).toISOString() : null,
+  };
+
+  if (storageMeta) {
+    base.storage_path = storageMeta.storage_path;
+    base.file_name = storageMeta.file_name;
+    base.mime_type = storageMeta.mime_type;
+    base.file_size = storageMeta.file_size;
+    base.public_url = storageMeta.public_url;
+  }
+
+  let query = supabase.from(TABLE).upsert(
+    id
+      ? { id, ...base }
+      : base,
+    {
+      onConflict: "slug",
+    }
+  ).select("*").single();
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data as DocumentRecord;
+}
+
+export async function deleteDocument(id: string) {
+  const { error } = await supabase.from(TABLE).delete().eq("id", id);
+  if (error) throw error;
+}

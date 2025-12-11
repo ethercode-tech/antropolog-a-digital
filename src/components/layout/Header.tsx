@@ -282,7 +282,7 @@ export function Header() {
 
             {/* CTAs derecha */}
             <div className="flex items-center gap-2 ml-2 shrink-0">
-              <Button asChild size="sm" variant="outline" className="whitespace-nowrap">
+              <Button asChild size="sm" variant="secondary" className="whitespace-nowrap">
                 <Link to="/tramites/matriculacion" onClick={closeAllMenus}>
                   Trámites en línea
                   <ArrowRight className="w-4 h-4 ml-1" />

@@ -6,9 +6,12 @@ export default function Historia() {
       {/* Header */}
       <section className="bg-secondary py-16 md:py-24">
         <div className="container-main">
-          <h1 className="section-title text-center">Historia del Colegio de Antropología</h1>
+          <h1 className="section-title text-center">
+            Historia del Colegio de Graduados en Antropología de Jujuy
+          </h1>
           <p className="section-subtitle text-center max-w-2xl mx-auto">
-            Más de cinco décadas al servicio de la profesión antropológica y el desarrollo social.
+            Institución creada por Ley Provincial N.º 5753, al servicio del
+            ejercicio profesional de la antropología en Jujuy.
           </p>
         </div>
       </section>
@@ -19,45 +22,92 @@ export default function Historia() {
           <div className="max-w-4xl mx-auto">
             <Card className="mb-8">
               <CardContent className="p-8 md:p-10">
-                <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">Los orígenes</h2>
+                <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">
+                  Orígenes y creación por ley
+                </h2>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  El Colegio de Antropología fue fundado en 1968 por un grupo de profesionales visionarios que comprendieron la necesidad de contar con una institución que agrupara y representara a los antropólogos del país. En sus inicios, la organización contaba con apenas una veintena de miembros fundadores, todos ellos egresados de las primeras promociones de las escuelas de antropología nacionales.
+                  El Colegio de Graduados en Antropología de Jujuy tiene su
+                  origen en la Ley Provincial N.º 5753, sancionada por la
+                  Legislatura de Jujuy en 2012. Esta norma reconoce la
+                  necesidad de contar con un organismo profesional específico
+                  que matricule, regule y represente a quienes ejercen la
+                  antropología en el ámbito de la provincia.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
-                  Durante sus primeros años, el Colegio se concentró en establecer las bases institucionales, definir los principios éticos de la profesión y promover el reconocimiento legal del ejercicio profesional de la antropología.
+                  A partir de esta ley se establece al Colegio como entidad con
+                  sede en San Salvador de Jujuy, con facultades para llevar el
+                  registro de profesionales habilitados, ordenar el ejercicio
+                  de la profesión y resguardar el cumplimiento de las normas
+                  éticas en el campo de las ciencias antropológicas.
                 </p>
               </CardContent>
             </Card>
 
             <Card className="mb-8">
               <CardContent className="p-8 md:p-10">
-                <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">Consolidación institucional</h2>
+                <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">
+                  Puesta en marcha y consolidación institucional
+                </h2>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  En la década de 1980, el Colegio experimentó un período de notable crecimiento. Se establecieron las primeras comisiones permanentes de trabajo, se creó la Revista de Estudios Antropológicos y se iniciaron los programas de formación continua para los colegiados.
+                  En los años posteriores a la sanción de la ley se desarrollan
+                  las primeras acciones de organización interna, presentación
+                  pública del Colegio y convocatoria a las y los profesionales
+                  graduados en antropología para su matriculación. En ese
+                  proceso se fueron definiendo las instancias de gobierno
+                  colegiado, los mecanismos de ingreso al padrón profesional y
+                  las primeras líneas de trabajo institucional.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
-                  Durante este período, el Colegio también fortaleció su presencia internacional, estableciendo convenios con instituciones académicas de América Latina, Europa y Norteamérica, lo que permitió el intercambio de profesionales y la realización de investigaciones conjuntas.
+                  La consolidación del Colegio se apoya en la construcción de
+                  un ámbito de referencia para la profesión en Jujuy, tanto
+                  frente a organismos públicos y privados como ante la propia
+                  comunidad académica y profesional vinculada a las ciencias
+                  sociales.
                 </p>
               </CardContent>
             </Card>
 
             <Card className="mb-8">
               <CardContent className="p-8 md:p-10">
-                <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">La antropología en el siglo XXI</h2>
+                <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">
+                  Rol actual y alcances
+                </h2>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  Con la llegada del nuevo milenio, el Colegio de Antropología renovó su compromiso con la profesión y con la sociedad. Se actualizaron los estatutos, se modernizaron los procesos administrativos y se implementaron nuevas tecnologías para facilitar la comunicación con los colegiados.
+                  De acuerdo con la Ley 5753, el Colegio tiene a su cargo la
+                  matriculación de las y los profesionales en antropología que
+                  ejercen en la provincia, la defensa de sus derechos
+                  profesionales y la promoción de un desempeño responsable y
+                  ético. También puede intervenir como órgano consultor frente
+                  a instituciones públicas y privadas que requieran aportes
+                  especializados desde la antropología.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
-                  Hoy, el Colegio cuenta con más de 500 miembros activos y continúa trabajando en la promoción del ejercicio ético de la profesión, la defensa de los derechos profesionales y la vinculación de la antropología con los grandes desafíos de la sociedad contemporánea.
+                  Entre sus objetivos se encuentra impulsar la jerarquización
+                  de la profesión, favorecer la formación continua y promover
+                  la articulación entre el trabajo antropológico, las políticas
+                  públicas y las demandas sociales de las comunidades de
+                  Jujuy. La escala y el ritmo de estas acciones pueden variar
+                  según cada período de gestión, pero el marco legal y las
+                  atribuciones institucionales se mantienen vigentes.
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardContent className="p-8 md:p-10">
-                <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">Nuestra misión hacia el futuro</h2>
+                <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">
+                  Misión y proyección hacia el futuro
+                </h2>
                 <p className="text-muted-foreground leading-relaxed">
-                  El Colegio de Antropología se proyecta como una institución líder en la promoción de la disciplina antropológica, comprometida con la formación de nuevas generaciones de profesionales y con el aporte de la mirada antropológica a la comprensión y solución de los problemas sociales contemporáneos. Seguiremos trabajando por una antropología al servicio de la humanidad.
+                  La misión del Colegio es garantizar un ejercicio profesional
+                  de la antropología que sea técnicamente competente, éticamente
+                  responsable y socialmente comprometido con la realidad de
+                  Jujuy. En esa dirección, el Colegio se proyecta como un
+                  espacio de referencia para las nuevas generaciones de
+                  graduadas y graduados, y como interlocutor válido ante el
+                  Estado y la sociedad cuando se requiere la mirada
+                  antropológica para comprender y abordar problemáticas
+                  sociales, culturales y territoriales.
                 </p>
               </CardContent>
             </Card>
