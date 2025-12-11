@@ -16,6 +16,11 @@ export default function Historia() {
         </div>
       </section>
 
+        <img
+    src="/logo/logo.conletras.principal.svg"
+    alt="Colegio de Antropología"
+    className="w-80 h-32 md:w-80 md:h-32 object-contain mx-auto mt-4"
+  />
       {/* Content */}
       <section className="py-16 md:py-24">
         <div className="container-main">
@@ -41,6 +46,7 @@ export default function Historia() {
                   éticas en el campo de las ciencias antropológicas.
                 </p>
               </CardContent>
+
             </Card>
 
             <Card className="mb-8">

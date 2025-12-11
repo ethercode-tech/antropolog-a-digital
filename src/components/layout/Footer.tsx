@@ -19,9 +19,14 @@ export function Footer() {
           {/* About */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+              {/* <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
                 <BookOpen className="w-5 h-5 text-primary-foreground" />
-              </div>
+              </div> */}
+                <img
+    src="/logo/logo.sinletras.blanco.svg"
+    alt="Colegio de Antropología"
+    className="w-14 h-10 md:w-12 md:h-12 object-contain"
+  />
               <h3 className="font-serif font-semibold text-lg">Colegio de Antropología</h3>
             </div>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
