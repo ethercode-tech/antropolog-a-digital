@@ -787,7 +787,7 @@ export default function AdminMatriculacion() {
                           <a
                             key={doc.id}
                             href={doc.url}
-                            target="_blank"
+                            // target="_blank"
                             rel="noopener noreferrer"
                             className="flex items-center justify-between gap-2 rounded-md px-2 py-1 text-xs hover:bg-background/60 transition-colors"
                           >

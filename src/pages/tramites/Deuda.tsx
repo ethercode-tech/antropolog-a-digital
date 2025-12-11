@@ -5,6 +5,7 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
+  Link,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -246,7 +247,11 @@ export default function Deuda() {
                       Para regularizar su situación, comuníquese con la
                       administración del Colegio.
                     </p>
-                    <Button>Contactar Administración</Button>
+                      <Button >
+                        <Link to="/contacto">
+                          Contactar Administración
+                        </Link>
+                      </Button>
                   </CardContent>
                 </Card>
               )}
