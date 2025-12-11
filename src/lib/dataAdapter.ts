@@ -412,8 +412,14 @@ export async function getGalleryImages(): Promise<GalleryImage[]> {
   return mockGalleryImages;
 }
 
-export async function getUsefulLinks(): Promise<{ title: string; url: string }[]> {
-  return usefulLinks;
+export async function getUsefulLinks() {
+  return [
+    { title: "Ley 5753 – Colegio de Antropología de Jujuy", url: "https://boletinoficial.jujuy.gob.ar/?p=66286" },
+    { title: "Colegio de Graduados en Antropología de la República Argentina (CGA)", url: "https://cgantropologia.org.ar/" },
+    { title: "Instituto Nacional de Antropología y Pensamiento Latinoamericano (INAPL)", url: "https://inapl.cultura.gob.ar/" },
+    { title: "Cuadernos del INAPL (publicaciones antropológicas)", url: "https://inapl.cultura.gob.ar/" },
+    { title: "13° Congreso Argentino de Antropología Social – Jujuy (CAAS)", url: "https://13caas.unju.edu.ar/" }
+  ];
 }
 
 // Helpers legacy (compatibilidad)
