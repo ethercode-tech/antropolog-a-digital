@@ -83,18 +83,21 @@ export function Footer() {
             <h4 className="font-serif font-semibold text-lg mb-4">Contacto</h4>
             <ul className="space-y-3">
               <li className="flex items-start gap-3">
+                {/* <div> */}
                 <MapPin className="w-4 h-4 mt-1 text-primary" />
                 <span className="text-primary-foreground/70 text-sm">
-                  Av. Universidad 1234, Ciudad
+                Otero 257 primer piso, <br /> San Salvador de Jujuy
                 </span>
+
+                {/* </div> */}
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-primary" />
-                <span className="text-primary-foreground/70 text-sm">+1 234 567 890</span>
+                <span className="text-primary-foreground/70 text-sm">+59 3883290858</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-primary" />
-                <span className="text-primary-foreground/70 text-sm">info@colegiodeantropologia.org</span>
+                <span className="text-primary-foreground/70 text-sm">colegioantropologjujuy@gmail.com</span>
               </li>
             </ul>
           </div>
