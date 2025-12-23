@@ -88,7 +88,7 @@ export default function Index() {
         <div className="container-main relative z-10">
           <div className="max-w-3xl">
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6 leading-tight animate-fade-in-up">
-            Colegió de Graduados en Antropología de Jujuy
+            Colegio de Graduados en Antropología de Jujuy
             </h1>
             <p
               className="text-lg md:text-xl text-primary-foreground/90 mb-8 leading-relaxed animate-fade-in-up"
