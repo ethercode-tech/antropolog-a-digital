@@ -51,7 +51,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-      <Topbar uma="10.000,00" />
+      {/* <Topbar uma="10.000,00" /> */}
     <TooltipProvider>
       <Toaster />
       <Sonner />
