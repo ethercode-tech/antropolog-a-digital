@@ -109,10 +109,10 @@ export default function Contacto() {
                     <MapPin className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground mb-1">Dirección</h3>
+                    <h3 className="font-semibold text-foreground mb-1 sm:block">Dirección</h3>
                     <p className="text-muted-foreground">
-                      Av. Universidad 1234, Piso 5<br />
-                      Ciudad, CP 12345
+                    Otero 25, primer piso<br />
+                      Ciudad, San Salvador de Jujuy CP 4600
                     </p>
                   </div>
                 </div>
@@ -123,7 +123,7 @@ export default function Contacto() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Teléfono</h3>
-                    <p className="text-muted-foreground">+1 234 567 890</p>
+                    <p className="text-muted-foreground">+59 3883290858</p>
                   </div>
                 </div>
 
@@ -133,7 +133,7 @@ export default function Contacto() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-foreground mb-1">Correo electrónico</h3>
-                    <p className="text-muted-foreground">info@colegiodeantropologia.org</p>
+                    <p className="text-muted-foreground">colegioantropologjujuy@gmail.com</p>
                   </div>
                 </div>
               </div>
