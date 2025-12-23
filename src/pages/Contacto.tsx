@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { createContactMessage } from "@/lib/contactApi";
 
 export default function Contacto() {
   const { toast } = useToast();
@@ -16,7 +17,9 @@ export default function Contacto() {
     mensaje: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -25,8 +28,7 @@ export default function Contacto() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validation
+
     if (!formData.nombre.trim() || !formData.email.trim() || !formData.mensaje.trim()) {
       toast({
         title: "Error",
@@ -47,17 +49,32 @@ export default function Contacto() {
     }
 
     setIsSubmitting(true);
+    try {
+      await createContactMessage({
+        full_name: formData.nombre,
+        email: formData.email,
+        message: formData.mensaje,
+        source_page: "/contacto", // opcional, para tracking
+      });
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+      toast({
+        title: "Mensaje enviado",
+        description: "Gracias por contactarnos. Te responderemos a la brevedad.",
+      });
 
-    toast({
-      title: "Mensaje enviado",
-      description: "Gracias por contactarnos. Te responderemos a la brevedad.",
-    });
-
-    setFormData({ nombre: "", email: "", mensaje: "" });
-    setIsSubmitting(false);
+      setFormData({ nombre: "", email: "", mensaje: "" });
+    } catch (error: any) {
+      // Si pasa algo acá, no es “simulado”, es que Supabase se quejó
+      toast({
+        title: "Error al enviar",
+        description:
+          error?.message ??
+          "Ocurrió un problema al enviar el mensaje. Intenta nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -82,7 +99,8 @@ export default function Contacto() {
                 Información de contacto
               </h2>
               <p className="text-muted-foreground mb-8 leading-relaxed">
-                Estamos disponibles para atender tus consultas de lunes a viernes de 9:00 a 18:00 horas. También puedes visitarnos en nuestra sede.
+                Estamos disponibles para atender tus consultas de lunes a viernes de 9:00 a 18:00 horas.
+                También puedes visitarnos en nuestra sede.
               </p>
 
               <div className="space-y-6">

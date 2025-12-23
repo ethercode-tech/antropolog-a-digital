@@ -42,12 +42,12 @@ const tramites: Tramite[] = [
     icon: DollarSign,
     description: "Consulte el estado actualizado de sus cuotas y obligaciones.",
   },
-  // {
-  //   href: "/tramites/constancia",
-  //   label: "Tramitar Constancia",
-  //   icon: Award,
-  //   description: "Solicite constancias de habilitación y estado de colegiación.",
-  // },
+  {
+    href: "/matriculados",
+    label: "Encontrar Profesionales",
+    icon: Award,
+    description: "Encontra a los profesionales.",
+  },
   {
     href: "/tramites/facturas",
     label: "Descarga de Facturas",

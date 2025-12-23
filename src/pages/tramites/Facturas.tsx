@@ -2,48 +2,50 @@ import { useState } from "react";
 import { Search, FileText, Download, AlertCircle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { getProfesionalByDniMatricula, getFacturasByProfesional, ProfesionalPublico, Factura } from "@/lib/dataAdapter";
+import { getUltimaFacturaPorMatricula, ProfesionalPublico, Factura } from "@/lib/dataAdapter";
+import { Label } from "@radix-ui/react-label";
+
+type ResultadoConsulta =
+  | { profesional: ProfesionalPublico; factura: Factura | null }
+  | "not_found"
+  | null;
 
 export default function Facturas() {
   const { toast } = useToast();
-  const [dni, setDni] = useState("");
   const [matricula, setMatricula] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [result, setResult] = useState<{ profesional: ProfesionalPublico; facturas: Factura[] } | "not_found" | null>(null);
+  const [result, setResult] = useState<ResultadoConsulta>(null);
 
   const handleConsulta = async () => {
-    if (!dni || !matricula) {
+    if (!matricula.trim()) {
       toast({
-        title: "Datos incompletos",
-        description: "Por favor ingrese su DNI y matrícula",
-        variant: "destructive"
+        title: "Matrícula requerida",
+        description: "Ingrese su número de matrícula para consultar",
+        variant: "destructive",
       });
       return;
     }
 
     setIsSearching(true);
-    
-    const profesional = await getProfesionalByDniMatricula(dni, matricula);
-    
-    if (profesional) {
-      const facturas = await getFacturasByProfesional(profesional.id);
-      setResult({ profesional, facturas });
-    } else {
+
+    const res = await getUltimaFacturaPorMatricula(matricula.trim());
+
+    if (!res) {
       setResult("not_found");
+    } else {
+      setResult(res);
     }
-    
+
     setIsSearching(false);
   };
 
-  const formatMes = (mes: string) => {
+  const formatMes = (mes: string | null | undefined) => {
     if (!mes) return "-";
     const [year, month] = mes.split("-");
     const date = new Date(parseInt(year), parseInt(month) - 1);
-    return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
+    return date.toLocaleDateString("es-ES", { year: "numeric", month: "long" });
   };
 
   return (
@@ -53,32 +55,23 @@ export default function Facturas() {
         <div className="container-main">
           <h1 className="section-title text-center">Descarga de Facturas</h1>
           <p className="section-subtitle text-center max-w-2xl mx-auto">
-            Acceda al historial de facturas emitidas por el Colegio
+            Ingrese su número de matrícula para acceder a su última factura emitida.
           </p>
         </div>
       </section>
 
       {/* Content */}
       <section className="py-12 md:py-16">
-        <div className="container-main max-w-4xl">
+        <div className="container-main max-w-3xl">
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle className="font-serif">Ingrese sus datos</CardTitle>
+              <CardTitle className="font-serif">Consulta de factura</CardTitle>
               <CardDescription>
-                Complete los campos para acceder a sus facturas
+                Ingrese solo su número de matrícula, sin DNI ni otros datos.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="dni">DNI</Label>
-                  <Input
-                    id="dni"
-                    placeholder="12345678"
-                    value={dni}
-                    onChange={(e) => setDni(e.target.value)}
-                  />
-                </div>
+              <div className="grid md:grid-cols-[1fr_auto] gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="matricula">Matrícula</Label>
                   <Input
@@ -91,107 +84,69 @@ export default function Facturas() {
                 <div className="flex items-end">
                   <Button onClick={handleConsulta} disabled={isSearching} className="w-full">
                     <Search className="w-4 h-4 mr-2" />
-                    {isSearching ? "Buscando..." : "Buscar Facturas"}
+                    {isSearching ? "Buscando..." : "Buscar factura"}
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Resultado encontrado */}
           {result && result !== "not_found" && (
             <Card className="animate-fade-in">
               <CardHeader>
-                <CardTitle className="font-serif">Historial de Facturas</CardTitle>
+                <CardTitle className="font-serif">Última factura emitida</CardTitle>
                 <CardDescription>
-                  {result.profesional.nombre} - Matrícula: {result.profesional.matricula}
+                  {result.profesional.nombre} – Matrícula: {result.profesional.matricula}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {result.facturas.length > 0 ? (
-                  <>
-                    {/* Desktop Table */}
-                    <div className="hidden md:block">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Número</TableHead>
-                            <TableHead>Período</TableHead>
-                            <TableHead>Concepto</TableHead>
-                            <TableHead>Importe</TableHead>
-                            <TableHead className="text-right">Acción</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {result.facturas.map((factura) => (
-                            <TableRow key={factura.id}>
-                              <TableCell className="font-medium">
-                                {factura.numero}
-                              </TableCell>
-                              <TableCell>
-                                {formatMes(factura.periodo)}
-                              </TableCell>
-                              <TableCell>{factura.concepto}</TableCell>
-                              <TableCell>${factura.importe.toLocaleString()}</TableCell>
-                              <TableCell className="text-right">
-                                {factura.urlPdf && (
-                                  <a 
-                                    href={factura.urlPdf} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                  >
-                                    <Button variant="outline" size="sm">
-                                      <Download className="w-4 h-4 mr-2" />
-                                      Descargar PDF
-                                    </Button>
-                                  </a>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                {result.factura ? (
+                  <div className="bg-secondary/50 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <FileText className="w-5 h-5 text-primary" />
+                      <div>
+                        <p className="font-medium text-sm">
+                          Factura {result.factura.numero}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Emitida el{" "}
+                          {new Date(result.factura.fechaEmision).toLocaleDateString("es-ES")}
+                        </p>
+                      </div>
                     </div>
 
-                    {/* Mobile Cards */}
-                    <div className="md:hidden space-y-4">
-                      {result.facturas.map((factura) => (
-                        <div 
-                          key={factura.id}
-                          className="bg-secondary/50 rounded-lg p-4"
-                        >
-                          <div className="flex items-center gap-3 mb-3">
-                            <FileText className="w-5 h-5 text-primary" />
-                            <span className="font-medium">{factura.numero}</span>
-                          </div>
-                          <div className="text-sm text-muted-foreground mb-2">
-                            {factura.concepto}
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                            <Calendar className="w-4 h-4" />
-                            {formatMes(factura.periodo)} - ${factura.importe.toLocaleString()}
-                          </div>
-                          {factura.urlPdf && (
-                            <a 
-                              href={factura.urlPdf} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                            >
-                              <Button variant="outline" size="sm" className="w-full">
-                                <Download className="w-4 h-4 mr-2" />
-                                Descargar PDF
-                              </Button>
-                            </a>
-                          )}
-                        </div>
-                      ))}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="w-4 h-4" />
+                      <span>
+                        Período: {formatMes(result.factura.periodo)} – Monto: $
+                        {result.factura.importe.toLocaleString()}
+                      </span>
                     </div>
-                  </>
+
+                    {result.factura.urlPdf ? (
+                      <a
+                        href={result.factura.urlPdf}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Button variant="outline" className="mt-2 w-full sm:w-auto">
+                          <Download className="w-4 h-4 mr-2" />
+                          Descargar PDF
+                        </Button>
+                      </a>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Esta factura aún no tiene un PDF asociado.
+                      </p>
+                    )}
+                  </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-lg font-medium mb-2">No hay facturas disponibles</p>
-                    <p className="text-muted-foreground">
-                      Aún no se han emitido facturas para su cuenta
+                  <div className="text-center py-10">
+                    <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                    <p className="font-medium mb-1">Sin facturas emitidas</p>
+                    <p className="text-sm text-muted-foreground">
+                      Todavía no se registran facturas para esta matrícula.
                     </p>
                   </div>
                 )}
@@ -199,13 +154,14 @@ export default function Facturas() {
             </Card>
           )}
 
+          {/* No encontrado */}
           {result === "not_found" && (
             <Card>
-              <CardContent className="p-12 text-center">
-                <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-lg font-medium mb-2">No se encontraron datos</p>
-                <p className="text-muted-foreground">
-                  Verifique que el DNI y la matrícula ingresados sean correctos
+              <CardContent className="p-10 text-center">
+                <AlertCircle className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                <p className="font-medium mb-1">No se encontraron datos</p>
+                <p className="text-sm text-muted-foreground">
+                  Verifique que el número de matrícula ingresado sea correcto.
                 </p>
               </CardContent>
             </Card>

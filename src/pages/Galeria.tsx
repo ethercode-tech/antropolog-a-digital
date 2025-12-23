@@ -1,12 +1,24 @@
+// src/pages/Galeria.tsx
 import { useState } from "react";
 import { X } from "lucide-react";
-import { mockGalleryImages } from "@/lib/dataAdapter";
+import { useQuery } from "@tanstack/react-query";
+import {
+  fetchPublicGalleryImages,
+  type GalleryImageRecord,
+} from "@/lib/galleryApi";
 
 export default function Galeria() {
-  const [selectedImage, setSelectedImage] = useState<typeof mockGalleryImages[0] | null>(null);
+  const [selectedImage, setSelectedImage] = useState<GalleryImageRecord | null>(null);
 
-  // Show max 30 images
-  const images = mockGalleryImages.slice(0, 30);
+  const { data: imagesData = [], isLoading, isError } = useQuery<
+    GalleryImageRecord[]
+  >({
+    queryKey: ["public-gallery-images"],
+    queryFn: fetchPublicGalleryImages,
+  });
+
+  // Máximo 30 imágenes
+  const images = imagesData.slice(0, 30);
 
   return (
     <div className="animate-fade-in">
@@ -23,26 +35,38 @@ export default function Galeria() {
       {/* Gallery Grid */}
       <section className="py-16 md:py-24">
         <div className="container-main">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {images.map((image, index) => (
-              <button
-                key={image.id}
-                onClick={() => setSelectedImage(image)}
-                className="aspect-square overflow-hidden rounded-lg group cursor-pointer animate-fade-in-up"
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                <img
-                  src={image.imageUrl}
-                  alt={image.altText}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-              </button>
-            ))}
-          </div>
-
-          {images.length === 0 && (
+          {isLoading ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No hay imágenes disponibles en este momento.</p>
+              <p className="text-muted-foreground">Cargando imágenes…</p>
+            </div>
+          ) : isError ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                Ocurrió un error al cargar la galería.
+              </p>
+            </div>
+          ) : images.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                No hay imágenes disponibles en este momento.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {images.map((image, index) => (
+                <button
+                  key={image.id}
+                  onClick={() => setSelectedImage(image)}
+                  className="aspect-square overflow-hidden rounded-lg group cursor-pointer animate-fade-in-up"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <img
+                    src={image.public_url ?? "/placeholder.png"}
+                    alt={image.alt_text ?? ""}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  />
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -50,7 +74,7 @@ export default function Galeria() {
 
       {/* Lightbox Modal */}
       {selectedImage && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-foreground/90 flex items-center justify-center p-4"
           onClick={() => setSelectedImage(null)}
         >
@@ -61,16 +85,18 @@ export default function Galeria() {
           >
             <X className="w-8 h-8" />
           </button>
-          <div 
+          <div
             className="max-w-4xl max-h-[90vh] animate-fade-in"
             onClick={(e) => e.stopPropagation()}
           >
             <img
-              src={selectedImage.imageUrl}
-              alt={selectedImage.altText}
+              src={selectedImage.public_url ?? "/placeholder.png"}
+              alt={selectedImage.alt_text ?? ""}
               className="max-w-full max-h-[80vh] object-contain rounded-lg"
             />
-            <p className="text-primary-foreground text-center mt-4">{selectedImage.altText}</p>
+            <p className="text-primary-foreground text-center mt-4">
+              {selectedImage.alt_text}
+            </p>
           </div>
         </div>
       )}

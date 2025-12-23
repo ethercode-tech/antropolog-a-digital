@@ -4,53 +4,46 @@ import {
   ClipboardList,
   DollarSign,
   Receipt,
-  Award,
   Users,
   FileText,
   Mail,
   History,
-  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { NewsCard } from "@/components/ui/NewsCard";
-import { mockNews } from "@/lib/dataAdapter";
+import { getNews, mockNews } from "@/lib/dataAdapter";
+import { useQuery } from "@tanstack/react-query";
 
 const professionalShortcuts = [
   {
     title: "Solicitar matriculación",
-    description: "Inicie su trámite de matriculación profesional en línea.",
+    description: "Iniciá tu trámite de matriculación profesional en línea.",
     href: "/tramites/matriculacion",
     icon: ClipboardList,
     badge: "Trámite online",
   },
   {
     title: "Consultar estado de matriculación",
-    description: "Revise el estado de su solicitud con su DNI.",
+    description: "Revisá el estado de tu solicitud con tu DNI.",
     href: "/tramites/matriculacion#consultar",
     icon: FileText,
   },
   {
     title: "Consulta de deuda",
-    description: "Verifique cuotas pendientes y situación de pago.",
+    description: "Verificá cuotas pendientes y tu situación de pago.",
     href: "/tramites/deuda",
     icon: DollarSign,
   },
   {
-    title: "Descarga de facturas",
-    description: "Acceda al historial de facturación y comprobantes.",
+    title: "Descarga de factura",
+    description: "Descargá la última factura emitida para tu matrícula.",
     href: "/tramites/facturas",
     icon: Receipt,
   },
-  // {
-  //   title: "Tramitar constancia",
-  //   description: "Solicite constancias de matrícula y habilitación.",
-  //   href: "/tramites/constancia",
-  //   icon: Award,
-  // },
   {
     title: "Padrón de matriculados",
-    description: "Busque profesionales habilitados por nombre o especialidad.",
+    description: "Buscá profesionales habilitados por nombre o especialidad.",
     href: "/matriculados",
     icon: Users,
   },
@@ -60,20 +53,14 @@ const infoBlocks = [
   {
     icon: History,
     title: "Institución y normativa",
-    description: "Conozca la historia del Colegio y el marco normativo vigente.",
+    description: "Historia del Colegio y marco normativo vigente.",
     href: "/historia",
   },
   {
-    icon: BookOpen,
-    title: "Áreas y servicios",
-    description: "Descubra las áreas de trabajo y servicios para profesionales.",
-    href: "/servicios",
-  },
-  {
     icon: FileText,
-    title: "Publicaciones",
-    description: "Acceso a documentos, resoluciones y material de consulta.",
-    href: "/publicaciones",
+    title: "Noticias y comunicados",
+    description: "Novedades, comunicados oficiales y actividades recientes.",
+    href: "/noticias",
   },
   {
     icon: Mail,
@@ -84,11 +71,18 @@ const infoBlocks = [
 ];
 
 export default function Index() {
-  const latestNews = mockNews.slice(0, 3);
+  const {
+    data: latestNews = [],
+    isLoading: isLoadingNews,
+    isError: isErrorNews,
+  } = useQuery({
+    queryKey: ["public-news-home"],
+    queryFn: () => getNews(3),
+  });
 
   return (
     <div className="animate-fade-in">
-      {/* Hero Section funcional */}
+      {/* Hero funcional */}
       <section className="relative bg-[image:var(--hero-gradient)] py-20 md:py-32 overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1920&h=1080&fit=crop')] bg-cover bg-center opacity-20" />
         <div className="container-main relative z-10">
@@ -128,47 +122,47 @@ export default function Index() {
       </section>
 
       {/* Accesos directos para profesionales */}
-      <section className="py-16 md:py-24 bg-primary/5">
+      <section className="py-14 md:py-20 bg-primary/5">
         <div className="container-main">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
-            <div>
-              <h2 className="section-title mb-2">Accesos directos para profesionales</h2>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 md:mb-10">
+            <div className="space-y-2">
+              <h2 className="section-title">Accesos directos para profesionales</h2>
               <p className="section-subtitle max-w-2xl">
-                Ingrese rápidamente a los trámites y consultas más frecuentes:
-                matriculación, deudas, facturación, constancias y padrón público.
+                Ingresá rápidamente a los trámites y consultas más utilizados:
+                matriculación, deuda, facturas y padrón público de matriculados.
               </p>
             </div>
-            <Button asChild variant="outline">
-              <Link to="/servicios">
-                Ver todos los trámites
+            <Button asChild variant="outline" className="self-start md:self-auto">
+              <Link to="/contacto">
+                Necesito ayuda con un trámite
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 sm:gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {professionalShortcuts.map((item, index) => (
               <Link key={item.href} to={item.href} className="group">
                 <Card
-                  className="h-full card-hover border-primary/20 hover:border-primary/50 bg-card"
-                  style={{ animationDelay: `${index * 0.07}s` }}
+                  className="h-full border-primary/15 hover:border-primary/60 bg-card transition-colors card-hover"
+                  style={{ animationDelay: `${index * 0.06}s` }}
                 >
-                  <CardContent className="p-6 md:p-7 flex flex-col gap-3">
+                  <CardContent className="p-5 sm:p-6 flex flex-col gap-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                        <item.icon className="w-6 h-6 text-primary" />
+                      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-serif text-lg font-semibold text-foreground mb-1">
+                        <h3 className="font-serif text-base sm:text-lg font-semibold text-foreground mb-1">
                           {item.title}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           {item.description}
                         </p>
                       </div>
                     </div>
                     {item.badge && (
-                      <p className="text-xs font-medium text-primary mt-1">
+                      <p className="text-[11px] font-medium text-primary mt-1">
                         {item.badge}
                       </p>
                     )}
@@ -180,29 +174,29 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Bloques informativos institucionales */}
-      <section className="py-16 md:py-24">
+      {/* Información institucional y recursos */}
+      <section className="py-14 md:py-20">
         <div className="container-main">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10 md:mb-12">
             <h2 className="section-title">Información institucional y recursos</h2>
             <p className="section-subtitle max-w-2xl mx-auto">
-              Además de los trámites, el Colegio ofrece marco institucional, normativa,
-              publicaciones y canales de contacto para acompañar el ejercicio profesional.
+              Documentación institucional, noticias y canales de contacto para
+              acompañar el ejercicio profesional y la vida colegiada.
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {infoBlocks.map((block, index) => (
               <Link key={block.href} to={block.href} className="group">
                 <Card
-                  className="h-full card-hover border-border bg-card"
+                  className="h-full border-border bg-card hover:border-primary/40 transition-colors card-hover"
                   style={{ animationDelay: `${index * 0.06}s` }}
                 >
-                  <CardContent className="p-6">
-                    <div className="w-12 h-12 mb-4 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                      <block.icon className="w-6 h-6 text-primary" />
+                  <CardContent className="p-5 sm:p-6">
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 mb-4 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <block.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
-                    <h3 className="font-serif font-semibold text-foreground mb-2">
+                    <h3 className="font-serif font-semibold text-foreground mb-2 text-base sm:text-lg">
                       {block.title}
                     </h3>
                     <p className="text-sm text-muted-foreground">
@@ -216,14 +210,15 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Últimas noticias, pero como complemento, no protagonista */}
-      <section className="py-16 md:py-24 bg-secondary/50">
+      {/* Últimas noticias */}
+      <section className="py-14 md:py-20 bg-secondary/60">
         <div className="container-main">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
               <h2 className="section-title mb-2">Novedades institucionales</h2>
-              <p className="text-muted-foreground max-w-xl">
-                Información relevante sobre actividades, comunicados y agenda del Colegio.
+              <p className="text-sm md:text-base text-muted-foreground max-w-xl">
+                Información relevante sobre actividades, comunicados y agenda del
+                Colegio de Antropología.
               </p>
             </div>
             <Button asChild variant="outline" size="sm">
@@ -234,44 +229,98 @@ export default function Index() {
             </Button>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {latestNews.map((news, index) => (
-              <div
-                key={news.id}
-                className="animate-fade-in-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <NewsCard news={news} />
-              </div>
-            ))}
-          </div>
+          {/* Loading */}
+          {isLoadingNews && (
+            <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-56 rounded-xl bg-muted/60 animate-pulse"
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Error */}
+          {isErrorNews && !isLoadingNews && (
+            <p className="text-sm text-red-500">
+              Ocurrió un problema al cargar las noticias. Intente nuevamente más tarde.
+            </p>
+          )}
+
+          {/* Noticias reales */}
+          {!isLoadingNews && !isErrorNews && latestNews.length > 0 && (
+            <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {latestNews.map((news, index) => (
+                <div
+                  key={news.id}
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${index * 0.08}s` }}
+                >
+                  <NewsCard news={news} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Sin noticias */}
+          {!isLoadingNews && !isErrorNews && latestNews.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Todavía no hay noticias publicadas en el portal.
+            </p>
+          )}
         </div>
       </section>
 
-      {/* CTA final orientada a acción concreta */}
-      <section className="py-16 md:py-24">
+
+      {/* CTA final */}
+      <section className="py-14 md:py-20">
         <div className="container-main">
-          <Card className="bg-accent text-accent-foreground overflow-hidden">
-            <CardContent className="p-8 md:p-12 text-center">
-              <h2 className="font-serif text-2xl md:text-3xl font-semibold mb-4">
+          <Card className="bg-[#5A3E2B] text-white overflow-hidden">
+            <CardContent className="p-7 sm:p-8 md:p-10 text-center space-y-4 md:space-y-6">
+
+              <h2 className="font-serif text-xl sm:text-2xl md:text-3xl font-semibold">
                 ¿Necesitás gestionar tu situación como profesional?
               </h2>
-              <p className="text-accent-foreground/80 mb-6 max-w-2xl mx-auto">
-                Iniciá tu matriculación, regularizá tu situación de pago o solicitá
-                constancias oficiales desde el portal de trámites en línea.
+
+              <p className="text-sm sm:text-base text-white/80 max-w-2xl mx-auto">
+                Iniciá tu matriculación, consultá tu deuda y descargá tu última factura
+                desde el portal de trámites en línea, sin desplazarte y con soporte institucional cuando lo necesites.
               </p>
+
               <div className="flex flex-wrap justify-center gap-3">
-                <Button asChild size="lg" className="bg-primary-foreground text-accent hover:bg-primary-foreground/90">
-                  <Link to="/tramites/matriculacion">Trámite de matriculación</Link>
+
+                {/* Botón principal que contrasta */}
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-[#F2E6D8] text-[#5A3E2B] font-semibold hover:bg-[#e8d9c8]"
+                >
+                  <Link to="/tramites/matriculacion">
+                    Trámite de matriculación
+                  </Link>
                 </Button>
-                <Button asChild size="lg" variant="outline">
-                  <Link to="/tramites/deuda">Consulta de deuda y facturas</Link>
+
+                {/* Botón secundario outline, visible sobre marrón */}
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="border-white text-black hover:bg-white/10"
+                >
+                  <Link to="/tramites/deuda">
+                    Consulta de deuda y facturas
+                  </Link>
                 </Button>
+
               </div>
+
             </CardContent>
           </Card>
         </div>
       </section>
+
     </div>
   );
 }
+
