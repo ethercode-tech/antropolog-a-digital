@@ -117,9 +117,11 @@ export function AdminLayout() {
         {/* Logo */}
         <div className="p-6 border-b border-sidebar-border">
           <Link to="/admin" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-sidebar-primary flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-sidebar-primary-foreground" />
-            </div>
+          <img
+    src="/logo/logo.sinletras.blanco.svg"
+    alt="Colegio de Antropología"
+    className="w-14 h-10 md:w-12 md:h-12 object-contain"
+  />
             <div>
               <h1 className="font-serif font-semibold text-sidebar-foreground">
                 Admin
@@ -201,9 +203,11 @@ export function AdminLayout() {
             className="flex items-center gap-3"
             onClick={() => setSidebarOpen(false)}
           >
-            <div className="w-10 h-10 rounded-full bg-sidebar-primary flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-sidebar-primary-foreground" />
-            </div>
+           <img
+    src="/logo/logo.sinletras.blanco.svg"
+    alt="Colegio de Antropología"
+    className="w-14 h-10 md:w-12 md:h-12 object-contain"
+  />
             <div>
               <h1 className="font-serif font-semibold text-sidebar-foreground">
                 Admin

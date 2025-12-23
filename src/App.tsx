@@ -41,6 +41,7 @@ import AdminFacturas from "./pages/admin/AdminFacturas";
 import AdminDeudas from "./pages/admin/AdminDeudas";
 import AdminFacturaForm from "./pages/admin/AdminFacturaForm";
 import AdminDeudaForm from "./pages/admin/AdminDeudaForm";
+import Topbar from "./components/Topbar";
 // import AdminUsuarios from "./pages/admin/AdminUsuarios";
 // import AdminUsuarioForm from "./pages/admin/AdminUsuarioForm";
 
@@ -48,6 +49,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+      <Topbar uma="10.000,00" />
     <TooltipProvider>
       <Toaster />
       <Sonner />
