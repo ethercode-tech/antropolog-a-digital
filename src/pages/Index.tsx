@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -14,6 +15,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { NewsCard } from "@/components/ui/NewsCard";
 import { getNews, mockNews } from "@/lib/dataAdapter";
 import { useQuery } from "@tanstack/react-query";
+//carrusel
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
+import { useRef } from "react";
 
 const professionalShortcuts = [
   {
@@ -80,16 +85,74 @@ export default function Index() {
     queryFn: () => getNews(3),
   });
 
+  //carrusel
+  const autoplay = useRef(
+    Autoplay({
+      delay: 5000,
+      stopOnInteraction: false,
+    })
+  )
+  const [emblaRef] = useEmblaCarousel(
+    {
+      loop: true,
+      duration: 70,
+    },
+    [autoplay.current]
+  );
+  
+  const heroImages = [
+    "/hero/hero-1.jpg",
+    "/hero/hero-2.jpg",
+    "/hero/hero-3.jpg",
+  ];
+
+
   return (
     <div className="animate-fade-in">
       {/* Hero funcional */}
-      <section className="relative bg-[image:var(--hero-gradient)] py-20 md:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1920&h=1080&fit=crop')] bg-cover bg-center opacity-20" />
-        <div className="container-main relative z-10">
+      <section
+  className="
+    relative
+    h-[95svh]
+    min-h-[420px]
+    md:h-[70vh]
+    md:min-h-[520px]
+    bg-[image:var(--hero-gradient)]
+    overflow-hidden
+  "
+>
+
+        {/* Carrusel de fondo */}
+        <div className="absolute inset-0">
+          {/* embla viewport  */}
+          <div
+            className="h-full w-full"
+            ref={emblaRef}
+            onMouseEnter={() => autoplay.current.stop()} onMouseLeave={() => autoplay.current.play()}>
+            {/* embla container  */}
+            <div className="flex h-full">
+              {heroImages.map((src) => (
+                <div key={src} className="relative flex-[0_0_100%] h-full">
+                  <div
+                    className="absolute inset-0 bg-cover bg-center will-change-transform"
+                    style={{ backgroundImage: `url(${src})` }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Overlay para contraste */}
+          <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+        </div>
+
+        {/* Contenido del hero (NO SE TOCA) */}
+        <div className="container-main relative z-10 h-full    flex items-center ">
           <div className="max-w-3xl">
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6 leading-tight animate-fade-in-up">
-            Colegio de Graduados en Antropología de Jujuy
+              Colegio de Graduados en Antropología de Jujuy
             </h1>
+
             <p
               className="text-lg md:text-xl text-primary-foreground/90 mb-8 leading-relaxed animate-fade-in-up"
               style={{ animationDelay: "0.1s" }}
@@ -98,6 +161,7 @@ export default function Index() {
               constancias, facturación y gestiones institucionales. Diseñado para
               que los matriculados encuentren todo en un solo lugar.
             </p>
+
             <div
               className="flex flex-wrap gap-4 animate-fade-in-up"
               style={{ animationDelay: "0.2s" }}
@@ -108,6 +172,7 @@ export default function Index() {
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
+
               <Button
                 asChild
                 size="lg"
@@ -120,6 +185,7 @@ export default function Index() {
           </div>
         </div>
       </section>
+
 
       {/* Accesos directos para profesionales */}
       <section className="py-14 md:py-20 bg-primary/5">
