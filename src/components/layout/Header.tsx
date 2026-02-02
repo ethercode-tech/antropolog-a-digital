@@ -40,68 +40,97 @@ type DropdownLink = {
 type NavEntry = SimpleLink | DropdownLink;
 
 const navEntries: NavEntry[] = [
+  // QUIENES SOMOS 
   {
     type: "dropdown",
-    label: "Trámites y servicios",
-    icon: ClipboardList,
+    label: "Quiénes somos",
+    icon: History,
     items: [
       {
-        href: "/tramites/matriculacion",
-        label: "Matriculación profesional",
-        description: "Iniciar o seguir el trámite de matrícula.",
-        icon: ClipboardList,
+        href: "/historia",
+        label: "Historia y marco institucional",
+        description: "Origen del Colegio, objetivos y normativa vigente.",
+        icon: History,
       },
       {
-        href: "/tramites/deuda",
-        label: "Consulta de deuda",
-        description: "Ver cuotas pendientes y estado de pagos.",
-        icon: DollarSign,
+        href: "/marco-legal",
+        label: "Marco legal",
+        description: "Ley y decreto que regulan el ejercicio profesional.",
+        icon: FileText,
       },
-      {
-        href: "/tramites/facturas",
-        label: "Facturación y comprobantes",
-        description: "Descargar facturas emitidas.",
-        icon: Receipt,
-      },
+      // {
+      //   href: "/tramites/facturas",
+      //   label: "Facturación y comprobantes",
+      //   description: "Descargar facturas emitidas.",
+      //   icon: Receipt,
+      // },
       // {
       //   href: "/tramites/constancia",
       //   label: "Constancias",
       //   description: "Solicitar constancias oficiales.",
       //   icon: Award,
       // },
+      // {
+      //   href: "/matriculados",
+      //   label: "Padrón de matriculados",
+      //   description: "Buscar profesionales habilitados.",
+      //   icon: Users,
+      // },
+    ],
+  },
+  // EJERCICIO PROFESIONAL 
+  {
+    type: "dropdown",
+    label: "Ejercicio profesional",
+    icon: Users,
+    items: [
       {
         href: "/matriculados",
         label: "Padrón de matriculados",
-        description: "Buscar profesionales habilitados.",
+        description: "Profesionales habilitados para el ejercicio.",
         icon: Users,
       },
+      {
+        href: "/honorarios",
+        label: "Honorarios orientativos",
+        description: "Referencias para el ejercicio profesional.",
+        icon: DollarSign,
+      },
+      {
+        href: "/balances  ",
+        label: "Balances institucionales",
+        description: "Información económica del Colegio.",
+        icon: Receipt,
+      },
     ],
   },
+  // FORMACION PROFESIONAL 
   {
     type: "dropdown",
-    label: "Información institucional",
-    icon: History,
+    label: "Formación profesional",
+    icon: BookOpen,
     items: [
       {
-        href: "/historia",
-        label: "Historia y marco institucional",
-        description: "Origen, objetivos y normativa.",
-        icon: History,
+        href: "/formacion/cursos",
+        label: "Cursos",
+        description: "Propuestas de formación continua.",
+        icon: BookOpen,
       },
       {
-        href: "/servicios",
-        label: "Áreas y servicios",
-        description: "Ámbitos de actuación y acompañamiento.",
-        icon: BookIcon,
+        href: "/formacion/seminarios",
+        label: "Seminarios",
+        description: "Seminarios y jornadas profesionales.",
+        icon: Award,
       },
       {
-        href: "/publicaciones",
-        label: "Publicaciones y documentos",
-        description: "Material de consulta y resoluciones.",
-        icon: FileText,
+        href: "/formacion/capacitaciones",
+        label: "Capacitaciones",
+        description: "Instancias de actualización profesional.",
+        icon: ClipboardList,
       },
     ],
   },
+  // NOVEDADES 
   {
     type: "dropdown",
     label: "Novedades",
@@ -121,10 +150,11 @@ const navEntries: NavEntry[] = [
       },
     ],
   },
+  // CONTACTO 
   {
     type: "link",
     href: "/contacto",
-    label: "Contacto",
+    label: "Solicitudes y contacto",
   },
 ];
 
@@ -173,10 +203,10 @@ export function Header() {
           >
             {/* <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary flex items-center justify-center transition-transform group-hover:scale-105"> */}
             <img
-    src="/logo/logo.sinletras.principal.svg"
-    alt="Colegio de Antropología"
-    className="w-14 h-10 md:w-12 md:h-12 object-contain"
-  />
+              src="/logo/logo.sinletras.principal.svg"
+              alt="Colegio de Antropología"
+              className="w-12 h-8 md:w-12 md:h-12 object-contain"
+            />
             {/* </div> */}
             <div className="hidden sm:block">
               <h1 className="font-serif font-semibold text-lg md:text-xl text-primary leading-tight">
@@ -200,7 +230,7 @@ export function Header() {
                       to={entry.href}
                       onClick={closeAllMenus}
                       className={cn(
-                        "px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors",
+                        "px-3 py-3 rounded-md text-sm font-medium whitespace-nowrap transition-colors",
                         isActiveHref(entry.href)
                           ? "bg-primary/10 text-primary"
                           : "text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -227,7 +257,7 @@ export function Header() {
                           : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                       )}
                     >
-                      {Icon && <Icon className="w-4 h-4" />}
+                      {/* {Icon && <Icon className="w-4 h-4" />} */}
                       <span>{entry.label}</span>
                       <ChevronDown
                         className={cn(
@@ -286,15 +316,15 @@ export function Header() {
 
             {/* CTAs derecha */}
             <div className="flex items-center gap-2 ml-2 shrink-0">
-              <Button asChild size="sm" variant="secondary" className="whitespace-nowrap">
+              {/* <Button asChild size="sm" variant="secondary" className="whitespace-nowrap">
                 <Link to="/tramites/matriculacion" onClick={closeAllMenus}>
                   Trámites en línea
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
-              </Button>
+              </Button> */}
               <Button asChild size="sm" className="whitespace-nowrap">
                 <Link to="/matriculados" onClick={closeAllMenus}>
-                  Buscar profesional
+                Padrón
                   <Users className="w-4 h-4 ml-1" />
                 </Link>
               </Button>
