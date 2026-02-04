@@ -104,6 +104,38 @@ const navEntries: NavEntry[] = [
       },
     ],
   },
+  // TRÁMITES DE COLEGIADO
+  {
+    type: "dropdown",
+    label: "Trámites de colegiado",
+    icon: ClipboardList,
+    items: [
+      {
+        href: "/tramites/matriculacion",
+        label: "Matriculación profesional",
+        description: "Iniciar o seguir el trámite de matrícula.",
+        icon: ClipboardList,
+      },
+      {
+        href: "/tramites/deuda",
+        label: "Consulta de deuda",
+        description: "Ver cuotas pendientes y estado de pagos.",
+        icon: DollarSign,
+      },
+      {
+        href: "/tramites/facturas",
+        label: "Facturación y comprobantes",
+        description: "Descargar facturas emitidas.",
+        icon: Receipt,
+      },
+      {
+        href: "/matriculados",
+        label: "Padrón de matriculados",
+        description: "Buscar profesionales habilitados.",
+        icon: Users,
+      },
+    ],
+  },
   // FORMACION PROFESIONAL 
   {
     type: "dropdown",
@@ -192,36 +224,39 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <header className="sticky top-0 z-50 bg-secondary/70 backdrop-blur-sm border-b border-border">
       <div className="container-main">
-        <div className="flex items-center justify-between h-16 md:h-20 gap-3">
+        <div className="flex items-center justify-between min-h-16 md:min-h-20 ">
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center gap-3 group shrink-0"
+            className="flex items-center gap-1 group shrink-0"
             onClick={closeAllMenus}
           >
             {/* <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary flex items-center justify-center transition-transform group-hover:scale-105"> */}
             <img
               src="/logo/logo.sinletras.principal.svg"
-              alt="Colegio de Antropología"
-              className="w-12 h-8 md:w-12 md:h-12 object-contain"
+              alt="Colegio de Graduados en Antropología de Jujuy"
+              className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center object-contain"
             />
+
             {/* </div> */}
-            <div className="hidden sm:block">
-              <h1 className="font-serif font-semibold text-lg md:text-xl text-primary leading-tight">
-                Colegio de Antropología
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Portal de servicios profesionales
+            <div className="hidden sm:block leading-tight">
+              <p className="font-serif font-bold text-sm md:text-base text-primary">
+                Colegio de Graduados
+              </p>
+              <p className="font-serif font-semibold text-sm md:text-base text-primary">
+                en Antropología de Jujuy
               </p>
             </div>
+
+
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-3">
+          <nav className="hidden lg:flex items-center gap-1">
             {/* Bloque central */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {navEntries.map((entry) => {
                 if (entry.type === "link") {
                   return (
@@ -230,7 +265,7 @@ export function Header() {
                       to={entry.href}
                       onClick={closeAllMenus}
                       className={cn(
-                        "px-3 py-3 rounded-md text-sm font-medium whitespace-nowrap transition-colors",
+                        "px-1 py-3 rounded-md text-sm font-bold whitespace-nowrap transition-colors",
                         isActiveHref(entry.href)
                           ? "bg-primary/10 text-primary"
                           : "text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -251,7 +286,7 @@ export function Header() {
                       type="button"
                       onClick={() => handleDesktopDropdownToggle(entry.label)}
                       className={cn(
-                        "inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors",
+                        "inline-flex items-center gap-1.5 px-1 py-2 rounded-md text-sm font-bold whitespace-nowrap transition-colors",
                         active || isOpen
                           ? "bg-primary/10 text-primary"
                           : "text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -270,9 +305,10 @@ export function Header() {
                     {isOpen && (
                       <div
                         className={cn(
-                          "absolute right-0 mt-2 rounded-lg border border-border bg-popover shadow-lg animate-fade-in z-50",
-                          "max-w-[min(20rem,calc(100vw-2rem))]"
+                          "absolute  mt-2 rounded-lg border border-border bg-popover shadow-lg animate-fade-in z-50",
+                          "w-72 max-w-[calc(100vw-2rem)]"
                         )}
+
                       >
                         <div className="py-2">
                           {entry.items.map((item) => {
@@ -284,7 +320,8 @@ export function Header() {
                                 to={item.href}
                                 onClick={closeAllMenus}
                                 className={cn(
-                                  "flex items-start gap-3 px-4 py-3 text-sm transition-colors",
+                                  "flex items-start gap-2.5 px-4 py-2.5 text-sm"
+                                  ,
                                   itemActive
                                     ? "bg-primary/10 text-primary"
                                     : "text-foreground hover:bg-muted"
@@ -315,7 +352,7 @@ export function Header() {
             </div>
 
             {/* CTAs derecha */}
-            <div className="flex items-center gap-2 ml-2 shrink-0">
+            <div className="flex items-center gap-1 ml-2 shrink-0">
               {/* <Button asChild size="sm" variant="secondary" className="whitespace-nowrap">
                 <Link to="/tramites/matriculacion" onClick={closeAllMenus}>
                   Trámites en línea
@@ -324,7 +361,7 @@ export function Header() {
               </Button> */}
               <Button asChild size="sm" className="whitespace-nowrap">
                 <Link to="/matriculados" onClick={closeAllMenus}>
-                Padrón
+                  Padrón
                   <Users className="w-4 h-4 ml-1" />
                 </Link>
               </Button>
@@ -353,18 +390,18 @@ export function Header() {
                 onClick={closeAllMenus}
                 className="px-4 py-3 rounded-md text-base font-semibold flex items-center justify-between bg-primary/10 text-primary"
               >
-                <span>Padrón de matriculados</span>
+                <span>Padrón</span>
                 <Users className="w-4 h-4" />
               </Link>
 
-              <Link
+              {/* <Link
                 to="/tramites/matriculacion"
                 onClick={closeAllMenus}
                 className="px-4 py-3 rounded-md text-base font-semibold flex items-center justify-between bg-primary/5 text-primary"
               >
                 <span>Trámites en línea</span>
                 <ClipboardList className="w-4 h-4" />
-              </Link>
+              </Link> */}
 
               {/* Resto del menú */}
               {navEntries.map((entry) => {
@@ -375,7 +412,7 @@ export function Header() {
                       to={entry.href}
                       onClick={closeAllMenus}
                       className={cn(
-                        "px-4 py-3 rounded-md text-base font-medium transition-colors",
+                        "px-4 py-3 rounded-md text-bold font-medium transition-colors",
                         isActiveHref(entry.href)
                           ? "bg-primary/10 text-primary"
                           : "text-muted-foreground hover:text-foreground hover:bg-secondary"

@@ -99,7 +99,7 @@ export default function Index() {
     },
     [autoplay.current]
   );
-  
+
   const heroImages = [
     "/hero/hero-1.jpg",
     "/hero/hero-2.jpg",
@@ -111,7 +111,7 @@ export default function Index() {
     <div className="animate-fade-in">
       {/* Hero funcional */}
       <section
-  className="
+        className="
     relative
     h-[95svh]
     min-h-[420px]
@@ -120,16 +120,17 @@ export default function Index() {
     bg-[image:var(--hero-gradient)]
     overflow-hidden
   "
->
-
+      >
         {/* Carrusel de fondo */}
         <div className="absolute inset-0">
-          {/* embla viewport  */}
+          {/* embla viewport */}
           <div
             className="h-full w-full"
             ref={emblaRef}
-            onMouseEnter={() => autoplay.current.stop()} onMouseLeave={() => autoplay.current.play()}>
-            {/* embla container  */}
+            onMouseEnter={() => autoplay.current.stop()}
+            onMouseLeave={() => autoplay.current.play()}
+          >
+            {/* embla container */}
             <div className="flex h-full">
               {heroImages.map((src) => (
                 <div key={src} className="relative flex-[0_0_100%] h-full">
@@ -142,12 +143,12 @@ export default function Index() {
             </div>
           </div>
 
-          {/* Overlay para contraste */}
-          <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+          {/* Overlay para contraste – institucional */}
+          <div className="absolute inset-0 bg-primary/30 pointer-events-none" />
         </div>
 
-        {/* Contenido del hero (NO SE TOCA) */}
-        <div className="container-main relative z-10 h-full    flex items-center ">
+        {/* Contenido del hero (NO SE TOCA estructura) */}
+        <div className="container-main relative z-10 h-full flex items-center">
           <div className="max-w-3xl">
             <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6 leading-tight animate-fade-in-up">
               Colegio de Graduados en Antropología de Jujuy
@@ -166,20 +167,34 @@ export default function Index() {
               className="flex flex-wrap gap-4 animate-fade-in-up"
               style={{ animationDelay: "0.2s" }}
             >
-              <Button asChild size="lg" variant="secondary" className="font-semibold">
+              {/* CTA principal */}
+              <Button
+                asChild
+                size="lg"
+                variant="secondary"
+                className="font-semibold shadow-lg hover:shadow-xl transition-shadow"
+              >
                 <Link to="/tramites/matriculacion">
                   Iniciar trámite de matriculación
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
 
+              {/* CTA secundario */}
               <Button
                 asChild
                 size="lg"
-                variant="outline"
-                className="bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+                variant="default"
+                className="
+            bg-primary
+            text-primary-foreground
+            hover:bg-primary/90
+            font-medium
+          "
               >
-                <Link to="/tramites/deuda">Consultar deuda y facturas</Link>
+                <Link to="/tramites/deuda">
+                  Consultar deuda y facturas
+                </Link>
               </Button>
             </div>
           </div>
@@ -188,17 +203,25 @@ export default function Index() {
 
 
       {/* Accesos directos para profesionales */}
-      <section className="py-14 md:py-20 bg-primary/5">
+      <section className="py-14 md:py-20 bg-background">
         <div className="container-main">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8 md:mb-10">
             <div className="space-y-2">
-              <h2 className="section-title">Accesos directos para profesionales</h2>
+              <h2 className="section-title">
+                Accesos directos para profesionales
+              </h2>
               <p className="section-subtitle max-w-2xl">
                 Ingresá rápidamente a los trámites y consultas más utilizados:
                 matriculación, deuda, facturas y padrón público de matriculados.
               </p>
             </div>
-            <Button asChild variant="outline" className="self-start md:self-auto">
+
+            {/* CTA de ayuda */}
+            <Button
+              asChild
+              variant="secondary"
+              className="self-start md:self-auto font-medium"
+            >
               <Link to="/contacto">
                 Necesito ayuda con un trámite
                 <ArrowRight className="w-4 h-4 ml-2" />
@@ -210,16 +233,33 @@ export default function Index() {
             {professionalShortcuts.map((item, index) => (
               <Link key={item.href} to={item.href} className="group">
                 <Card
-                  className="h-full border-primary/15 hover:border-primary/60 bg-card transition-colors card-hover"
+                  className="
+              h-full
+              border-border
+              bg-card
+              transition-all
+              hover:border-primary/50
+              hover:shadow-md
+            "
                   style={{ animationDelay: `${index * 0.06}s` }}
                 >
                   <CardContent className="p-5 sm:p-6 flex flex-col gap-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <div
+                        className="
+                    w-11 h-11 sm:w-12 sm:h-12
+                    rounded-xl
+                    bg-primary/15
+                    flex items-center justify-center
+                    transition-colors
+                    group-hover:bg-primary/25
+                  "
+                      >
                         <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                       </div>
+
                       <div className="flex-1">
-                        <h3 className="font-serif text-base sm:text-lg font-semibold text-foreground mb-1">
+                        <h3 className="font-sans text-base sm:text-lg font-semibold text-foreground mb-1">
                           {item.title}
                         </h3>
                         <p className="text-xs sm:text-sm text-muted-foreground">
@@ -227,6 +267,7 @@ export default function Index() {
                         </p>
                       </div>
                     </div>
+
                     {item.badge && (
                       <p className="text-[11px] font-medium text-primary mt-1">
                         {item.badge}
@@ -240,11 +281,14 @@ export default function Index() {
         </div>
       </section>
 
+
       {/* Información institucional y recursos */}
-      <section className="py-14 md:py-20">
+      <section className="py-14 md:py-20 bg-secondary">
         <div className="container-main">
           <div className="text-center mb-10 md:mb-12">
-            <h2 className="section-title">Información institucional y recursos</h2>
+            <h2 className="section-title">
+              Información institucional y recursos
+            </h2>
             <p className="section-subtitle max-w-2xl mx-auto">
               Documentación institucional, noticias y canales de contacto para
               acompañar el ejercicio profesional y la vida colegiada.
@@ -255,16 +299,35 @@ export default function Index() {
             {infoBlocks.map((block, index) => (
               <Link key={block.href} to={block.href} className="group">
                 <Card
-                  className="h-full border-border bg-card hover:border-primary/40 transition-colors card-hover"
+                  className="
+              h-full
+              bg-card
+              border-border
+              transition-all
+              hover:border-primary/50
+              hover:shadow-md
+            "
                   style={{ animationDelay: `${index * 0.06}s` }}
                 >
                   <CardContent className="p-5 sm:p-6">
-                    <div className="w-11 h-11 sm:w-12 sm:h-12 mb-4 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <div
+                      className="
+                  w-11 h-11 sm:w-12 sm:h-12
+                  mb-4
+                  rounded-full
+                  bg-primary/15
+                  flex items-center justify-center
+                  transition-colors
+                  group-hover:bg-primary/25
+                "
+                    >
                       <block.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
+
                     <h3 className="font-serif font-semibold text-foreground mb-2 text-base sm:text-lg">
                       {block.title}
                     </h3>
+
                     <p className="text-sm text-muted-foreground">
                       {block.description}
                     </p>
@@ -276,73 +339,82 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Últimas noticias */}
-      <section className="py-14 md:py-20 bg-secondary/60">
-        <div className="container-main">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <div>
-              <h2 className="section-title mb-2">Novedades institucionales</h2>
-              <p className="text-sm md:text-base text-muted-foreground max-w-xl">
-                Información relevante sobre actividades, comunicados y agenda del
-                Colegio de Antropología.
-              </p>
-            </div>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/noticias">
-                Ver todas las noticias
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Link>
-            </Button>
+{/* Últimas noticias */}
+<section className="py-14 md:py-20 bg-secondary">
+  <div className="container-main">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div>
+        <h2 className="section-title mb-2">
+          Novedades institucionales
+        </h2>
+        <p className="text-sm md:text-base text-muted-foreground max-w-xl">
+          Información relevante sobre actividades, comunicados y agenda del
+          Colegio de Antropología.
+        </p>
+      </div>
+
+      <Button
+        asChild
+        variant="outline"
+        size="sm"
+        className="border-primary/30 text-primary hover:bg-primary/10"
+      >
+        <Link to="/noticias">
+          Ver todas las noticias
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Link>
+      </Button>
+    </div>
+
+    {/* Loading */}
+    {isLoadingNews && (
+      <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-56 rounded-xl bg-muted/60 animate-pulse"
+          />
+        ))}
+      </div>
+    )}
+
+    {/* Error */}
+    {isErrorNews && !isLoadingNews && (
+      <p className="text-sm text-red-500">
+        Ocurrió un problema al cargar las noticias. Intente nuevamente más tarde.
+      </p>
+    )}
+
+    {/* Noticias reales */}
+    {!isLoadingNews && !isErrorNews && latestNews.length > 0 && (
+      <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {latestNews.map((news, index) => (
+          <div
+            key={news.id}
+            className="animate-fade-in-up"
+            style={{ animationDelay: `${index * 0.08}s` }}
+          >
+            <NewsCard news={news} />
           </div>
+        ))}
+      </div>
+    )}
 
-          {/* Loading */}
-          {isLoadingNews && (
-            <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-56 rounded-xl bg-muted/60 animate-pulse"
-                />
-              ))}
-            </div>
-          )}
+    {/* Sin noticias */}
+    {!isLoadingNews && !isErrorNews && latestNews.length === 0 && (
+      <p className="text-sm text-muted-foreground">
+        Todavía no hay noticias publicadas en el portal.
+      </p>
+    )}
+  </div>
+</section>
 
-          {/* Error */}
-          {isErrorNews && !isLoadingNews && (
-            <p className="text-sm text-red-500">
-              Ocurrió un problema al cargar las noticias. Intente nuevamente más tarde.
-            </p>
-          )}
-
-          {/* Noticias reales */}
-          {!isLoadingNews && !isErrorNews && latestNews.length > 0 && (
-            <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {latestNews.map((news, index) => (
-                <div
-                  key={news.id}
-                  className="animate-fade-in-up"
-                  style={{ animationDelay: `${index * 0.08}s` }}
-                >
-                  <NewsCard news={news} />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Sin noticias */}
-          {!isLoadingNews && !isErrorNews && latestNews.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              Todavía no hay noticias publicadas en el portal.
-            </p>
-          )}
-        </div>
-      </section>
 
 
       {/* CTA final */}
       <section className="py-14 md:py-20">
         <div className="container-main">
-          <Card className="bg-[#5A3E2B] text-white overflow-hidden">
+          <Card className="bg-primary text-white overflow-hidden">
             <CardContent className="p-7 sm:p-8 md:p-10 text-center space-y-4 md:space-y-6">
 
               <h2 className="font-serif text-xl sm:text-2xl md:text-3xl font-semibold">
@@ -360,7 +432,7 @@ export default function Index() {
                 <Button
                   asChild
                   size="lg"
-                  className="bg-[#F2E6D8] text-[#5A3E2B] font-semibold hover:bg-[#e8d9c8]"
+                  className="bg-[#F2E6D8] text-secondary-foreground font-semibold hover:bg-accent/80 hover:text-primary-foreground"
                 >
                   <Link to="/tramites/matriculacion">
                     Trámite de matriculación
