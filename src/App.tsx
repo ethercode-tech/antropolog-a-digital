@@ -18,6 +18,8 @@ import Publicaciones from "./pages/Publicaciones";
 import Galeria from "./pages/Galeria";
 import Contacto from "./pages/Contacto";
 import NotFound from "./pages/NotFound";
+import ConsejoDirectivo from "./components/institucional/ConsejoDirectivo";
+import MarcoLegal from "./components/MarcoLegalContent";
 
 // Admin pages
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -44,7 +46,6 @@ import AdminDeudaForm from "./pages/admin/AdminDeudaForm";
 
 import Topbar from "./components/Topbar";
 import AdminContactos from "./pages/admin/AdminContactos";
-import ConsejoDirectivo from "./components/institucional/ConsejoDirectivo";
 // import AdminUsuarios from "./pages/admin/AdminUsuarios";
 // import AdminUsuarioForm from "./pages/admin/AdminUsuarioForm";
 
@@ -63,7 +64,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/historia" element={<Historia />} />
             <Route path="/consejo-directivo" element={<ConsejoDirectivo />} />
-
+            <Route path="/marco-legal" element={<MarcoLegal />} />  
             <Route path="/servicios" element={<Servicios />} />
             <Route path="/noticias" element={<Noticias />} />
             <Route path="/noticias/:id" element={<NoticiaDetalle />} />
