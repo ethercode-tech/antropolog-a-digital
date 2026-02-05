@@ -15,6 +15,9 @@ import {
   FileText,
   Image,
   ArrowRight,
+  UsersRound,
+  Landmark,
+  Gavel 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -58,6 +61,12 @@ const navEntries: NavEntry[] = [
         description: "Ley y decreto que regulan el ejercicio profesional.",
         icon: FileText,
       },
+      {
+        href: "/consejo-directivo",
+        label: "Consejo Directivo",
+        description: "Autoridades y órganos de conducción del Colegio",
+        icon: UsersRound 
+      }
       // {
       //   href: "/tramites/facturas",
       //   label: "Facturación y comprobantes",

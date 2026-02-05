@@ -44,6 +44,7 @@ import AdminDeudaForm from "./pages/admin/AdminDeudaForm";
 
 import Topbar from "./components/Topbar";
 import AdminContactos from "./pages/admin/AdminContactos";
+import ConsejoDirectivo from "./components/institucional/ConsejoDirectivo";
 // import AdminUsuarios from "./pages/admin/AdminUsuarios";
 // import AdminUsuarioForm from "./pages/admin/AdminUsuarioForm";
 
@@ -61,6 +62,8 @@ const App = () => (
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Index />} />
             <Route path="/historia" element={<Historia />} />
+            <Route path="/consejo-directivo" element={<ConsejoDirectivo />} />
+
             <Route path="/servicios" element={<Servicios />} />
             <Route path="/noticias" element={<Noticias />} />
             <Route path="/noticias/:id" element={<NoticiaDetalle />} />
