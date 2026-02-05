@@ -29,7 +29,11 @@ export default function Contacto() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.nombre.trim() || !formData.email.trim() || !formData.mensaje.trim()) {
+    if (
+      !formData.nombre.trim() ||
+      !formData.email.trim() ||
+      !formData.mensaje.trim()
+    ) {
       toast({
         title: "Error",
         description: "Por favor completa todos los campos.",
@@ -54,17 +58,17 @@ export default function Contacto() {
         full_name: formData.nombre,
         email: formData.email,
         message: formData.mensaje,
-        source_page: "/contacto", // opcional, para tracking
+        source_page: "/contacto",
       });
 
       toast({
         title: "Mensaje enviado",
-        description: "Gracias por contactarnos. Te responderemos a la brevedad.",
+        description:
+          "Tu mensaje fue enviado correctamente. Nos comunicaremos a la brevedad.",
       });
 
       setFormData({ nombre: "", email: "", mensaje: "" });
     } catch (error: any) {
-      // Si pasa algo acá, no es “simulado”, es que Supabase se quejó
       toast({
         title: "Error al enviar",
         description:
@@ -82,25 +86,28 @@ export default function Contacto() {
       {/* Header */}
       <section className="bg-secondary py-16 md:py-24">
         <div className="container-main">
-          <h1 className="section-title text-center">Contacto</h1>
+          <h1 className="section-title text-center">
+            Solicitudes y contacto
+          </h1>
           <p className="section-subtitle text-center max-w-2xl mx-auto">
-            ¿Tienes alguna consulta? Comunícate con nosotros y te responderemos a la brevedad.
+            Canal institucional de contacto para consultas, solicitudes y
+            comunicaciones formales con el Colegio.
           </p>
         </div>
       </section>
 
-      {/* Contact Content */}
+      {/* Contenido */}
       <section className="py-16 md:py-24">
         <div className="container-main">
           <div className="grid lg:grid-cols-2 gap-12">
-            {/* Contact Info */}
+            {/* Información institucional */}
             <div className="animate-fade-in-up">
               <h2 className="font-serif text-2xl font-semibold text-foreground mb-6">
                 Información de contacto
               </h2>
+
               <p className="text-muted-foreground mb-8 leading-relaxed">
-                Estamos disponibles para atender tus consultas de lunes a viernes de 9:00 a 18:00 horas.
-                También puedes visitarnos en nuestra sede.
+                Atención de lunes a viernes de 8:00 a 13:00 horas.
               </p>
 
               <div className="space-y-6">
@@ -109,10 +116,13 @@ export default function Contacto() {
                     <MapPin className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground mb-1 sm:block">Dirección</h3>
+                    <h3 className="font-semibold text-foreground mb-1">
+                      Dirección
+                    </h3>
                     <p className="text-muted-foreground">
-                    Otero 25, primer piso<br />
-                      Ciudad, San Salvador de Jujuy CP 4600
+                      Otero 25, 1.º piso
+                      <br />
+                      San Salvador de Jujuy (CP 4600)
                     </p>
                   </div>
                 </div>
@@ -122,8 +132,12 @@ export default function Contacto() {
                     <Phone className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground mb-1">Teléfono</h3>
-                    <p className="text-muted-foreground">+59 3883290858</p>
+                    <h3 className="font-semibold text-foreground mb-1">
+                      Teléfono
+                    </h3>
+                    <p className="text-muted-foreground">
+                      +54 388 329-0858
+                    </p>
                   </div>
                 </div>
 
@@ -132,20 +146,31 @@ export default function Contacto() {
                     <Mail className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground mb-1">Correo electrónico</h3>
-                    <p className="text-muted-foreground">colegioantropologjujuy@gmail.com</p>
+                    <h3 className="font-semibold text-foreground mb-1">
+                      Correo electrónico
+                    </h3>
+                    <p className="text-muted-foreground">
+                      colegioantropologjujuy@gmail.com
+                    </p>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      Redes sociales institucionales: próximamente.
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Contact Form */}
-            <div className="animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
+            {/* Formulario */}
+            <div
+              className="animate-fade-in-up"
+              style={{ animationDelay: "0.1s" }}
+            >
               <Card className="border-border bg-card">
                 <CardContent className="p-6 md:p-8">
                   <h2 className="font-serif text-2xl font-semibold text-foreground mb-6">
-                    Envíanos un mensaje
+                    Enviar un mensaje
                   </h2>
+
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-2">
                       <Label htmlFor="nombre">Nombre completo</Label>
