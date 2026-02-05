@@ -101,9 +101,9 @@ export default function Index() {
   );
 
   const heroImages = [
+    "/hero/hero-3.jpg",
     "/hero/hero-1.jpg",
     "/hero/hero-2.jpg",
-    "/hero/hero-3.jpg",
   ];
 
 
@@ -113,84 +113,80 @@ export default function Index() {
       <section
         className="
     relative
-    h-[95svh]
-    min-h-[420px]
-    md:h-[70vh]
-    md:min-h-[520px]
+    w-full
+    /* 1. Usamos min-h para que nunca sea más pequeña que la pantalla, pero restamos la altura de la Navbar */
+    /* Si tu Navbar es 'fixed', usa h-[calc(100dvh-64px)] o simplemente h-dvh con un padding superior */
+    h-[calc(100dvh-80px)] 
+    min-h-[600px]
     bg-[image:var(--hero-gradient)]
     overflow-hidden
   "
       >
         {/* Carrusel de fondo */}
         <div className="absolute inset-0">
-          {/* embla viewport */}
           <div
             className="h-full w-full"
             ref={emblaRef}
             onMouseEnter={() => autoplay.current.stop()}
             onMouseLeave={() => autoplay.current.play()}
           >
-            {/* embla container */}
             <div className="flex h-full">
               {heroImages.map((src) => (
                 <div key={src} className="relative flex-[0_0_100%] h-full">
                   <div
                     className="absolute inset-0 bg-cover bg-center will-change-transform"
-                    style={{ backgroundImage: `url(${src})` }}
+                    style={{
+                      backgroundImage: `url(${src})`,
+                      /* 2. Ajustamos la posición para que el horizonte no quede raro */
+                      backgroundPosition: '50% 30%'
+                    }}
                   />
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Overlay para contraste – institucional */}
-          <div className="absolute inset-0 bg-primary/30 pointer-events-none" />
+          {/* Overlay - Subimos un poco la opacidad para que el texto blanco destaque más sobre el cerro */}
+          <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         </div>
 
-        {/* Contenido del hero (NO SE TOCA estructura) */}
-        <div className="container-main relative z-10 h-full flex items-center">
-          <div className="max-w-3xl">
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground mb-6 leading-tight animate-fade-in-up">
+        {/* Contenido del hero */}
+        {/* 3. Agregamos un padding lateral y ajustamos el contenedor principal */}
+        <div className="container-main relative z-10 h-full flex items-center px-6 md:px-12">
+          <div className="max-w-4xl"> {/* Un poco más ancho para que el título no rompa en tantas líneas */}
+            <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up drop-shadow-md">
               Colegio de Graduados en Antropología de Jujuy
             </h1>
 
             <p
-              className="text-lg md:text-xl text-primary-foreground/90 mb-8 leading-relaxed animate-fade-in-up"
+              className="text-lg md:text-2xl text-white/95 mb-10 max-w-2xl leading-relaxed animate-fade-in-up drop-shadow-sm"
               style={{ animationDelay: "0.1s" }}
             >
               Acceso centralizado a trámites en línea, padrón de profesionales,
-              constancias, facturación y gestiones institucionales. Diseñado para
-              que los matriculados encuentren todo en un solo lugar.
+              constancias, facturación y gestiones institucionales.
             </p>
 
             <div
               className="flex flex-wrap gap-4 animate-fade-in-up"
               style={{ animationDelay: "0.2s" }}
             >
-              {/* CTA principal */}
+              {/* Botones */}
               <Button
                 asChild
                 size="lg"
                 variant="secondary"
-                className="font-semibold shadow-lg hover:shadow-xl transition-shadow"
+                className="bg-white text-primary hover:bg-gray-100 font-bold px-8 py-6 text-lg shadow-2xl transition-all"
               >
                 <Link to="/tramites/matriculacion">
-                  Iniciar trámite de matriculación
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  Iniciar matriculación
+                  <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
 
-              {/* CTA secundario */}
               <Button
                 asChild
                 size="lg"
-                variant="default"
-                className="
-            bg-primary
-            text-primary-foreground
-            hover:bg-primary/90
-            font-medium
-          "
+                className="bg-primary/80 backdrop-blur-sm text-white border border-white/20 hover:bg-primary px-8 py-6 text-lg transition-all"
               >
                 <Link to="/tramites/deuda">
                   Consultar deuda y facturas
@@ -339,75 +335,75 @@ export default function Index() {
         </div>
       </section>
 
-{/* Últimas noticias */}
-<section className="py-14 md:py-20 bg-secondary">
-  <div className="container-main">
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-      <div>
-        <h2 className="section-title mb-2">
-          Novedades institucionales
-        </h2>
-        <p className="text-sm md:text-base text-muted-foreground max-w-xl">
-          Información relevante sobre actividades, comunicados y agenda del
-          Colegio de Antropología.
-        </p>
-      </div>
+      {/* Últimas noticias */}
+      <section className="py-14 md:py-20 bg-secondary">
+        <div className="container-main">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+            <div>
+              <h2 className="section-title mb-2">
+                Novedades institucionales
+              </h2>
+              <p className="text-sm md:text-base text-muted-foreground max-w-xl">
+                Información relevante sobre actividades, comunicados y agenda del
+                Colegio de Antropología.
+              </p>
+            </div>
 
-      <Button
-        asChild
-        variant="outline"
-        size="sm"
-        className="border-primary/30 text-primary hover:bg-primary/10"
-      >
-        <Link to="/noticias">
-          Ver todas las noticias
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Link>
-      </Button>
-    </div>
-
-    {/* Loading */}
-    {isLoadingNews && (
-      <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-56 rounded-xl bg-muted/60 animate-pulse"
-          />
-        ))}
-      </div>
-    )}
-
-    {/* Error */}
-    {isErrorNews && !isLoadingNews && (
-      <p className="text-sm text-red-500">
-        Ocurrió un problema al cargar las noticias. Intente nuevamente más tarde.
-      </p>
-    )}
-
-    {/* Noticias reales */}
-    {!isLoadingNews && !isErrorNews && latestNews.length > 0 && (
-      <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {latestNews.map((news, index) => (
-          <div
-            key={news.id}
-            className="animate-fade-in-up"
-            style={{ animationDelay: `${index * 0.08}s` }}
-          >
-            <NewsCard news={news} />
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="border-primary/30 text-primary hover:bg-primary/10"
+            >
+              <Link to="/noticias">
+                Ver todas las noticias
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Link>
+            </Button>
           </div>
-        ))}
-      </div>
-    )}
 
-    {/* Sin noticias */}
-    {!isLoadingNews && !isErrorNews && latestNews.length === 0 && (
-      <p className="text-sm text-muted-foreground">
-        Todavía no hay noticias publicadas en el portal.
-      </p>
-    )}
-  </div>
-</section>
+          {/* Loading */}
+          {isLoadingNews && (
+            <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="h-56 rounded-xl bg-muted/60 animate-pulse"
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Error */}
+          {isErrorNews && !isLoadingNews && (
+            <p className="text-sm text-red-500">
+              Ocurrió un problema al cargar las noticias. Intente nuevamente más tarde.
+            </p>
+          )}
+
+          {/* Noticias reales */}
+          {!isLoadingNews && !isErrorNews && latestNews.length > 0 && (
+            <div className="grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {latestNews.map((news, index) => (
+                <div
+                  key={news.id}
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${index * 0.08}s` }}
+                >
+                  <NewsCard news={news} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Sin noticias */}
+          {!isLoadingNews && !isErrorNews && latestNews.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Todavía no hay noticias publicadas en el portal.
+            </p>
+          )}
+        </div>
+      </section>
 
 
 

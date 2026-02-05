@@ -243,10 +243,10 @@ export function Header() {
             {/* </div> */}
             <div className="hidden sm:block leading-tight">
               <p className="font-serif font-bold text-sm md:text-base text-primary">
-                Colegio de Graduados
+                Colegio de Graduados en
               </p>
               <p className="font-serif font-semibold text-sm md:text-base text-primary">
-                en Antropología de Jujuy
+                Antropología de Jujuy
               </p>
             </div>
 
