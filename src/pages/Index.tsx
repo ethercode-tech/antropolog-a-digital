@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -106,21 +105,19 @@ export default function Index() {
     "/hero/hero-2.jpg",
   ];
 
-
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in -mt-16 md:-mt-20">
       {/* Hero funcional */}
       <section
         className="
-    relative
-    w-full
-    /* 1. Usamos min-h para que nunca sea más pequeña que la pantalla, pero restamos la altura de la Navbar */
-    /* Si tu Navbar es 'fixed', usa h-[calc(100dvh-64px)] o simplemente h-dvh con un padding superior */
-    h-[calc(100dvh-80px)] 
-    min-h-[600px]
-    bg-[image:var(--hero-gradient)]
-    overflow-hidden
-  "
+          relative
+          w-full
+          /* 1. CAMBIO: Usamos h-dvh para ocupar toda la pantalla real y pt para compensar la navbar */
+          h-dvh
+          min-h-[600px]
+          bg-[image:var(--hero-gradient)]
+          overflow-hidden
+        "
       >
         {/* Carrusel de fondo */}
         <div className="absolute inset-0">
@@ -151,8 +148,7 @@ export default function Index() {
         </div>
 
         {/* Contenido del hero */}
-        {/* 3. Agregamos un padding lateral y ajustamos el contenedor principal */}
-        <div className="container-main relative z-10 h-full flex items-center px-6 md:px-12">
+        <div className="container-main relative z-10 h-full flex items-center px-6 md:px-12 pt-16 md:pt-24">
           <div className="max-w-4xl"> {/* Un poco más ancho para que el título no rompa en tantas líneas */}
             <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up drop-shadow-md">
               Colegio de Graduados en Antropología de Jujuy
@@ -197,7 +193,6 @@ export default function Index() {
         </div>
       </section>
 
-
       {/* Accesos directos para profesionales */}
       <section className="py-14 md:py-20 bg-background">
         <div className="container-main">
@@ -230,26 +225,26 @@ export default function Index() {
               <Link key={item.href} to={item.href} className="group">
                 <Card
                   className="
-              h-full
-              border-border
-              bg-card
-              transition-all
-              hover:border-primary/50
-              hover:shadow-md
-            "
+                    h-full
+                    border-border
+                    bg-card
+                    transition-all
+                    hover:border-primary/50
+                    hover:shadow-md
+                  "
                   style={{ animationDelay: `${index * 0.06}s` }}
                 >
                   <CardContent className="p-5 sm:p-6 flex flex-col gap-3">
                     <div className="flex items-start gap-3">
                       <div
                         className="
-                    w-11 h-11 sm:w-12 sm:h-12
-                    rounded-xl
-                    bg-primary/15
-                    flex items-center justify-center
-                    transition-colors
-                    group-hover:bg-primary/25
-                  "
+                          w-11 h-11 sm:w-12 sm:h-12
+                          rounded-xl
+                          bg-primary/15
+                          flex items-center justify-center
+                          transition-colors
+                          group-hover:bg-primary/25
+                        "
                       >
                         <item.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                       </div>
@@ -277,7 +272,6 @@ export default function Index() {
         </div>
       </section>
 
-
       {/* Información institucional y recursos */}
       <section className="py-14 md:py-20 bg-secondary">
         <div className="container-main">
@@ -296,26 +290,26 @@ export default function Index() {
               <Link key={block.href} to={block.href} className="group">
                 <Card
                   className="
-              h-full
-              bg-card
-              border-border
-              transition-all
-              hover:border-primary/50
-              hover:shadow-md
-            "
+                    h-full
+                    bg-card
+                    border-border
+                    transition-all
+                    hover:border-primary/50
+                    hover:shadow-md
+                  "
                   style={{ animationDelay: `${index * 0.06}s` }}
                 >
                   <CardContent className="p-5 sm:p-6">
                     <div
                       className="
-                  w-11 h-11 sm:w-12 sm:h-12
-                  mb-4
-                  rounded-full
-                  bg-primary/15
-                  flex items-center justify-center
-                  transition-colors
-                  group-hover:bg-primary/25
-                "
+                        w-11 h-11 sm:w-12 sm:h-12
+                        mb-4
+                        rounded-full
+                        bg-primary/15
+                        flex items-center justify-center
+                        transition-colors
+                        group-hover:bg-primary/25
+                      "
                     >
                       <block.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
@@ -405,14 +399,11 @@ export default function Index() {
         </div>
       </section>
 
-
-
       {/* CTA final */}
       <section className="py-14 md:py-20">
         <div className="container-main">
           <Card className="bg-primary text-white overflow-hidden">
             <CardContent className="p-7 sm:p-8 md:p-10 text-center space-y-4 md:space-y-6">
-
               <h2 className="font-serif text-xl sm:text-2xl md:text-3xl font-semibold">
                 ¿Necesitás gestionar tu situación como profesional?
               </h2>
@@ -423,8 +414,6 @@ export default function Index() {
               </p>
 
               <div className="flex flex-wrap justify-center gap-3">
-
-                {/* Botón principal que contrasta */}
                 <Button
                   asChild
                   size="lg"
@@ -435,7 +424,6 @@ export default function Index() {
                   </Link>
                 </Button>
 
-                {/* Botón secundario outline, visible sobre marrón */}
                 <Button
                   asChild
                   size="lg"
@@ -446,15 +434,11 @@ export default function Index() {
                     Consulta de deuda y facturas
                   </Link>
                 </Button>
-
               </div>
-
             </CardContent>
           </Card>
         </div>
       </section>
-
     </div>
   );
 }
-

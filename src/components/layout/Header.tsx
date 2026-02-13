@@ -11,13 +11,10 @@ import {
   Award,
   Users,
   History,
-  BookOpen as BookIcon,
   FileText,
   Image,
-  ArrowRight,
   UsersRound,
-  Landmark,
-  Gavel 
+  MessageSquare // Nuevo icono para contacto
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -26,6 +23,7 @@ type SimpleLink = {
   type: "link";
   href: string;
   label: string;
+  icon?: React.ComponentType<{ className?: string }>;
 };
 
 type DropdownLink = {
@@ -43,7 +41,6 @@ type DropdownLink = {
 type NavEntry = SimpleLink | DropdownLink;
 
 const navEntries: NavEntry[] = [
-  // QUIENES SOMOS 
   {
     type: "dropdown",
     label: "Quiénes somos",
@@ -65,29 +62,10 @@ const navEntries: NavEntry[] = [
         href: "/consejo-directivo",
         label: "Consejo Directivo",
         description: "Autoridades y órganos de conducción del Colegio",
-        icon: UsersRound 
+        icon: UsersRound
       }
-      // {
-      //   href: "/tramites/facturas",
-      //   label: "Facturación y comprobantes",
-      //   description: "Descargar facturas emitidas.",
-      //   icon: Receipt,
-      // },
-      // {
-      //   href: "/tramites/constancia",
-      //   label: "Constancias",
-      //   description: "Solicitar constancias oficiales.",
-      //   icon: Award,
-      // },
-      // {
-      //   href: "/matriculados",
-      //   label: "Padrón de matriculados",
-      //   description: "Buscar profesionales habilitados.",
-      //   icon: Users,
-      // },
     ],
   },
-  // EJERCICIO PROFESIONAL 
   {
     type: "dropdown",
     label: "Ejercicio profesional",
@@ -106,14 +84,13 @@ const navEntries: NavEntry[] = [
         icon: DollarSign,
       },
       {
-        href: "/balances  ",
+        href: "/balances",
         label: "Balances institucionales",
         description: "Información económica del Colegio.",
         icon: Receipt,
       },
     ],
   },
-  // TRÁMITES DE COLEGIADO
   {
     type: "dropdown",
     label: "Trámites de colegiado",
@@ -145,7 +122,6 @@ const navEntries: NavEntry[] = [
       },
     ],
   },
-  // FORMACION PROFESIONAL 
   {
     type: "dropdown",
     label: "Formación profesional",
@@ -171,7 +147,6 @@ const navEntries: NavEntry[] = [
       },
     ],
   },
-  // NOVEDADES 
   {
     type: "dropdown",
     label: "Novedades",
@@ -191,28 +166,22 @@ const navEntries: NavEntry[] = [
       },
     ],
   },
-  // CONTACTO 
   {
     type: "link",
     href: "/contacto",
     label: "Solicitudes y contacto",
+    icon: MessageSquare // Icono agregado para mobile
   },
 ];
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [openDesktopDropdown, setOpenDesktopDropdown] = useState<string | null>(
-    null
-  );
-  const [openMobileDropdowns, setOpenMobileDropdowns] =
-    useState<Record<string, boolean>>({});
+  const [openDesktopDropdown, setOpenDesktopDropdown] = useState<string | null>(null);
+  const [openMobileDropdowns, setOpenMobileDropdowns] = useState<Record<string, boolean>>({});
   const location = useLocation();
 
   const toggleMobileDropdown = (label: string) => {
-    setOpenMobileDropdowns((prev) => ({
-      ...prev,
-      [label]: !prev[label],
-    }));
+    setOpenMobileDropdowns((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
   const isActiveHref = (href: string) => {
@@ -233,125 +202,62 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-secondary/70 backdrop-blur-sm border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm transition-all duration-300">
       <div className="container-main">
-        <div className="flex items-center justify-between min-h-16 md:min-h-20 ">
-          {/* Logo */}
-          <Link
-            to="/"
-            className="flex items-center gap-1 group shrink-0"
-            onClick={closeAllMenus}
-          >
-            {/* <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary flex items-center justify-center transition-transform group-hover:scale-105"> */}
+        <div className="flex items-center justify-between min-h-16 md:min-h-20 gap-2">
+          
+          {/* Logo Principal */}
+          <Link to="/" className="flex items-center group shrink-0 mr-2 xl:mr-6" onClick={closeAllMenus}>
             <img
-              src="/logo/logo.sinletras.principal.svg"
-              alt="Colegio de Graduados en Antropología de Jujuy"
-              className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center object-contain"
+              src="/logo/logo.conletras.principal.svg"
+              alt="Logo Colegio"
+              className="h-12 w-auto md:h-12 lg:h-14 xl:h-16 object-contain transition-transform group-hover:scale-105"
             />
-
-            {/* </div> */}
-            <div className="hidden sm:block leading-tight">
-              <p className="font-serif font-bold text-sm md:text-base text-primary">
-                Colegio de Graduados en
-              </p>
-              <p className="font-serif font-semibold text-sm md:text-base text-primary">
-                Antropología de Jujuy
-              </p>
-            </div>
-
-
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {/* Bloque central */}
-            <div className="flex items-center gap-1">
+          <nav className="hidden lg:flex items-center flex-1 justify-between">
+            <div className="flex items-center gap-x-1 xl:gap-x-2">
               {navEntries.map((entry) => {
+                const active = entry.type === "link" ? isActiveHref(entry.href) : isDropdownActive(entry);
+                const isOpen = openDesktopDropdown === entry.label;
+
+                const navItemClasses = cn(
+                  "px-2 py-2 rounded-md text-[13px] xl:text-sm font-bold whitespace-nowrap transition-all",
+                  active || isOpen ? "bg-primary text-white" : "text-slate-600 hover:text-primary hover:bg-slate-50"
+                );
+
                 if (entry.type === "link") {
                   return (
-                    <Link
-                      key={entry.href}
-                      to={entry.href}
-                      onClick={closeAllMenus}
-                      className={cn(
-                        "px-1 py-3 rounded-md text-sm font-bold whitespace-nowrap transition-colors",
-                        isActiveHref(entry.href)
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                      )}
-                    >
+                    <Link key={entry.href} to={entry.href} onClick={closeAllMenus} className={navItemClasses}>
                       {entry.label}
                     </Link>
                   );
                 }
 
-                const Icon = entry.icon;
-                const active = isDropdownActive(entry);
-                const isOpen = openDesktopDropdown === entry.label;
-
                 return (
                   <div key={entry.label} className="relative">
-                    <button
-                      type="button"
-                      onClick={() => handleDesktopDropdownToggle(entry.label)}
-                      className={cn(
-                        "inline-flex items-center gap-1.5 px-1 py-2 rounded-md text-sm font-bold whitespace-nowrap transition-colors",
-                        active || isOpen
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                      )}
-                    >
-                      {/* {Icon && <Icon className="w-4 h-4" />} */}
+                    <button type="button" onClick={() => handleDesktopDropdownToggle(entry.label)} className={cn("inline-flex items-center gap-1", navItemClasses)}>
                       <span>{entry.label}</span>
-                      <ChevronDown
-                        className={cn(
-                          "w-4 h-4 transition-transform",
-                          isOpen ? "rotate-180" : ""
-                        )}
-                      />
+                      <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", isOpen && "rotate-180")} />
                     </button>
-
                     {isOpen && (
-                      <div
-                        className={cn(
-                          "absolute  mt-2 rounded-lg border border-border bg-popover shadow-lg animate-fade-in z-50",
-                          "w-72 max-w-[calc(100vw-2rem)]"
-                        )}
-
-                      >
+                      <div className="absolute top-full left-0 mt-2 w-72 rounded-xl border border-slate-200 bg-white shadow-xl animate-fade-in z-50 overflow-hidden">
                         <div className="py-2">
-                          {entry.items.map((item) => {
-                            const ItemIcon = item.icon;
-                            const itemActive = isActiveHref(item.href);
-                            return (
-                              <Link
-                                key={item.href}
-                                to={item.href}
-                                onClick={closeAllMenus}
-                                className={cn(
-                                  "flex items-start gap-2.5 px-4 py-2.5 text-sm"
-                                  ,
-                                  itemActive
-                                    ? "bg-primary/10 text-primary"
-                                    : "text-foreground hover:bg-muted"
-                                )}
-                              >
-                                {ItemIcon && (
-                                  <div className="mt-0.5">
-                                    <ItemIcon className="w-4 h-4 text-primary" />
-                                  </div>
-                                )}
-                                <div>
-                                  <p className="font-medium">{item.label}</p>
-                                  {item.description && (
-                                    <p className="text-xs text-muted-foreground mt-0.5">
-                                      {item.description}
-                                    </p>
-                                  )}
-                                </div>
-                              </Link>
-                            );
-                          })}
+                          {entry.items.map((item) => (
+                            <Link
+                              key={item.href}
+                              to={item.href}
+                              onClick={closeAllMenus}
+                              className={cn("flex items-start gap-3 px-4 py-3 text-sm transition-colors", isActiveHref(item.href) ? "bg-primary/5 text-primary" : "text-slate-600 hover:bg-slate-50")}
+                            >
+                              {item.icon && <item.icon className="w-4 h-4 mt-0.5 text-primary/70 shrink-0" />}
+                              <div>
+                                <p className="font-semibold leading-none">{item.label}</p>
+                                {item.description && <p className="text-[11px] text-slate-500 mt-1.5 leading-tight">{item.description}</p>}
+                              </div>
+                            </Link>
+                          ))}
                         </div>
                       </div>
                     )}
@@ -359,60 +265,32 @@ export function Header() {
                 );
               })}
             </div>
-
-            {/* CTAs derecha */}
-            <div className="flex items-center gap-1 ml-2 shrink-0">
-              {/* <Button asChild size="sm" variant="secondary" className="whitespace-nowrap">
-                <Link to="/tramites/matriculacion" onClick={closeAllMenus}>
-                  Trámites en línea
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </Button> */}
-              <Button asChild size="sm" className="whitespace-nowrap">
+            <div className="ml-4">
+              <Button asChild size="sm" className="bg-primary hover:bg-primary/90 text-white font-bold px-4 h-10">
                 <Link to="/matriculados" onClick={closeAllMenus}>
-                  Padrón
-                  <Users className="w-4 h-4 ml-1" />
+                  Padrón <Users className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
             </div>
           </nav>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button*/}
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="lg:hidden text-primary hover:bg-primary/90 active:bg-primary/20"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
           >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
           </Button>
         </div>
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <nav className="lg:hidden py-4 border-t border-border animate-fade-in">
-            <div className="flex flex-col gap-2">
-              {/* Accesos prioritarios */}
-              <Link
-                to="/matriculados"
-                onClick={closeAllMenus}
-                className="px-4 py-3 rounded-md text-base font-semibold flex items-center justify-between bg-primary/10 text-primary"
-              >
-                <span>Padrón</span>
-                <Users className="w-4 h-4" />
-              </Link>
-
-              {/* <Link
-                to="/tramites/matriculacion"
-                onClick={closeAllMenus}
-                className="px-4 py-3 rounded-md text-base font-semibold flex items-center justify-between bg-primary/5 text-primary"
-              >
-                <span>Trámites en línea</span>
-                <ClipboardList className="w-4 h-4" />
-              </Link> */}
-
-              {/* Resto del menú */}
+          <nav className="lg:hidden py-4 border-t border-slate-100 animate-in slide-in-from-top-2">
+            <div className="flex flex-col gap-2 px-2">
+              
+              {/* Categorías Principales */}
               {navEntries.map((entry) => {
                 if (entry.type === "link") {
                   return (
@@ -421,70 +299,61 @@ export function Header() {
                       to={entry.href}
                       onClick={closeAllMenus}
                       className={cn(
-                        "px-4 py-3 rounded-md text-bold font-medium transition-colors",
-                        isActiveHref(entry.href)
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                        "flex items-center gap-3 px-4 py-3 rounded-md font-bold transition-colors",
+                        isActiveHref(entry.href) ? "bg-primary text-white" : "text-slate-700 hover:bg-slate-50"
                       )}
                     >
+                      {entry.icon && <entry.icon className={cn("w-5 h-5", isActiveHref(entry.href) ? "text-white" : "text-primary")} />}
                       {entry.label}
                     </Link>
                   );
                 }
 
-                const Icon = entry.icon;
                 const open = !!openMobileDropdowns[entry.label];
-
                 return (
-                  <div
-                    key={entry.label}
-                    className="rounded-md border border-border/60 overflow-hidden"
-                  >
+                  <div key={entry.label} className="mb-1">
                     <button
                       type="button"
-                      className="w-full flex items-center justify-between px-4 py-3 text-base font-medium text-foreground"
+                      className="w-full flex items-center justify-between px-4 py-3 font-bold text-slate-700 hover:bg-slate-50 rounded-md"
                       onClick={() => toggleMobileDropdown(entry.label)}
                     >
-                      <span className="inline-flex items-center gap-2">
-                        {Icon && <Icon className="w-4 h-4 text-primary" />}
+                      <span className="flex items-center gap-3">
+                        {entry.icon && <entry.icon className="w-5 h-5 text-primary" />}
                         {entry.label}
                       </span>
-                      <ChevronDown
-                        className={cn(
-                          "w-4 h-4 transition-transform",
-                          open ? "rotate-180" : ""
-                        )}
-                      />
+                      <ChevronDown className={cn("w-4 h-4 transition-transform text-slate-400", open && "rotate-180")} />
                     </button>
                     {open && (
-                      <div className="border-t border-border/60 bg-muted/40">
-                        {entry.items.map((item) => {
-                          const ItemIcon = item.icon;
-                          const itemActive = isActiveHref(item.href);
-                          return (
-                            <Link
-                              key={item.href}
-                              to={item.href}
-                              onClick={closeAllMenus}
-                              className={cn(
-                                "flex items-center gap-2 px-5 py-2.5 text-sm",
-                                itemActive
-                                  ? "bg-primary/10 text-primary"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                              )}
-                            >
-                              {ItemIcon && (
-                                <ItemIcon className="w-4 h-4 text-primary/80" />
-                              )}
-                              <span>{item.label}</span>
-                            </Link>
-                          );
-                        })}
+                      <div className="bg-slate-50 rounded-lg mt-1 ml-4 border-l-2 border-primary/30">
+                        {entry.items.map((item) => (
+                          <Link
+                            key={item.href}
+                            to={item.href}
+                            onClick={closeAllMenus}
+                            className={cn("flex items-center gap-3 px-4 py-3 text-sm text-slate-600", isActiveHref(item.href) && "text-primary font-bold bg-primary/5")}
+                          >
+                            {item.icon && <item.icon className="w-4 h-4 shrink-0" />}
+                            <span>{item.label}</span>
+                          </Link>
+                        ))}
                       </div>
                     )}
                   </div>
                 );
               })}
+
+              {/* Botón Padrón - AHORA AL FINAL */}
+              <div className="mt-4 pt-4 border-t border-slate-100">
+                <Link
+                  to="/matriculados"
+                  onClick={closeAllMenus}
+                  className="mx-2 py-4 px-4 rounded-xl bg-primary text-white font-bold flex items-center justify-center gap-3 shadow-lg active:scale-[0.98] transition-transform"
+                >
+                  <Users className="w-5 h-5" />
+                  <span>Padrón de Matriculados</span>
+                </Link>
+              </div>
+
             </div>
           </nav>
         )}
