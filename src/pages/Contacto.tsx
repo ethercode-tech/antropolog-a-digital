@@ -1,5 +1,7 @@
+import { Instagram } from "lucide-react";
 import { useState } from "react";
-import { Mail, Phone, MapPin, Send } from "lucide-react";
+// Agregamos MessageCircle a los imports
+import { Mail, Phone, MapPin, Send, MessageCircle, Camera } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +18,11 @@ export default function Contacto() {
     email: "",
     mensaje: "",
   });
+
+  // Configuración de WhatsApp
+  const whatsappNumber = "543883290858"; // Formato internacional sin símbolos
+  const whatsappMessage = encodeURIComponent("Hola, me comunico desde la web oficial del Colegio. Quisiera realizar una consulta.");
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -110,50 +117,69 @@ export default function Contacto() {
                 Atención de lunes a viernes de 8:00 a 13:00 horas.
               </p>
 
-              <div className="space-y-6">
+              <div className="space-y-8">
+                {/* Dirección */}
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <MapPin className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground mb-1">
-                      Dirección
-                    </h3>
+                    <h3 className="font-semibold text-foreground mb-1">Dirección</h3>
                     <p className="text-muted-foreground">
-                      Otero 25, 1.º piso
-                      <br />
+                      Otero 25, 1.º piso <br />
                       San Salvador de Jujuy (CP 4600)
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                {/* Teléfono y WhatsApp */}
+                <div className="flex items-start gap-4 group">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 transition-colors group-hover:bg-primary/20">
                     <Phone className="w-6 h-6 text-primary" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-1">
-                      Teléfono
-                    </h3>
-                    <p className="text-muted-foreground">
-                      +54 388 329-0858
-                    </p>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground mb-1">Contacto Directo</h3>
+                    <p className="text-muted-foreground mb-2">+54 388 329-0858</p>
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-sm font-bold text-primary hover:text-primary/80 transition-all border-b border-primary/20 hover:border-primary pb-0.5"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Escribinos por WhatsApp
+                    </a>
                   </div>
                 </div>
 
+                {/* Instagram - NUEVO ITEM */}
+                <div className="flex items-start gap-4 group">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 transition-colors group-hover:bg-primary/20">
+                    <Camera className="w-6 h-6 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground mb-1">Redes Sociales</h3>
+                    <p className="text-muted-foreground mb-2">Seguí nuestras novedades</p>
+                    <a
+                      href="https://www.instagram.com/cole.giodeantropologiajujuy/?hl=en"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-sm font-bold text-primary hover:text-primary/80 transition-all border-b border-primary/20 hover:border-primary pb-0.5"
+                    >
+                      <span className="mr-2">@colegioantropologosjujuy</span>
+                    </a>
+                  </div>
+                </div>
+
+                {/* Correo */}
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <Mail className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground mb-1">
-                      Correo electrónico
-                    </h3>
+                    <h3 className="font-semibold text-foreground mb-1">Correo electrónico</h3>
                     <p className="text-muted-foreground">
                       colegioantropologjujuy@gmail.com
-                    </p>
-                    <p className="text-muted-foreground text-sm mt-1">
-                      Redes sociales institucionales: próximamente.
                     </p>
                   </div>
                 </div>
