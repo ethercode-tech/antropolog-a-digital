@@ -46,6 +46,8 @@ import AdminDeudaForm from "./pages/admin/AdminDeudaForm";
 
 import Topbar from "./components/Topbar";
 import AdminContactos from "./pages/admin/AdminContactos";
+import Honorarios from "./pages/Honorarios";
+import Balances from "./pages/Balances";
 // import AdminUsuarios from "./pages/admin/AdminUsuarios";
 // import AdminUsuarioForm from "./pages/admin/AdminUsuarioForm";
 
@@ -63,6 +65,8 @@ const App = () => (
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Index />} />
             <Route path="/historia" element={<Historia />} />
+            <Route path="/honorarios" element={<Honorarios />} />
+            <Route path="/balances" element={<Balances />} />
             <Route path="/comision-directiva" element={<ConsejoDirectivo />} />
             <Route path="/marco-legal" element={<MarcoLegal />} />  
             <Route path="/servicios" element={<Servicios />} />

@@ -127,7 +127,7 @@ const navEntries: NavEntry[] = [
         icon: Image,
       },
       {
-        href: "/formacion/cursos",
+        href: "/noticias",
         label: "Cursos, Seminarios y Capacitaciones",
         description: "Propuestas de formación y actualización continua.",
         icon: BookOpen,
