@@ -9,6 +9,9 @@ export default function Historia() {
           <h1 className="section-title text-center">
             Historia del Colegio de Graduados en Antropología de Jujuy
           </h1>
+          {/* <p className="section-subtitle text-center max-w-2xl mx-auto">
+            El Colegio de Graduados en Antropología de Jujuy es una institución pionera y fundamental para la antropología argentina. A través de su potestad para matricular, su defensa de la ética profesional y su promoción de la disciplina, el CGAJ ordena y jerarquiza el ejercicio profesional en Jujuy, asegurando que la práctica antropológica responda a estándares de calidad y compromiso social..
+          </p> */}
           <p className="section-subtitle text-center max-w-2xl mx-auto">
             Institución creada por Ley Provincial N.º 5753, al servicio del
             ejercicio profesional de la antropología en Jujuy.
@@ -16,15 +19,36 @@ export default function Historia() {
         </div>
       </section>
 
-        <img
-    src="/logo/logo.conletras.principal.svg"
-    alt="Colegio de Antropología"
-    className="w-80 h-32 md:w-80 md:h-32 object-contain mx-auto mt-4"
-  />
+      <img
+        src="/logo/logo.conletras.principal.svg"
+        alt="Colegio de Antropología"
+        className="w-80 h-32 md:w-80 md:h-32 object-contain mx-auto mt-4"
+      />
+      {/* Declaración institucional */}
+      <section className="py-16 md:py-20">
+        <div className="container-main">
+          <div className="max-w-3xl mx-auto text-center">
+
+            <p className="text-xl md:text-2xl lg:text-4xl font-serif text-foreground leading-relaxed">
+              El Colegio de Graduados en Antropología de Jujuy es una institución
+              pionera y fundamental para la antropología argentina.
+            </p>
+
+            <p className="mt-6 text-base md:text-xl text-primary leading-relaxed">
+              A través de su potestad para matricular, su defensa de la ética
+              profesional y su promoción de la disciplina, el CGAJ ordena y
+              jerarquiza el ejercicio profesional en Jujuy, asegurando que la
+              práctica antropológica responda a estándares de calidad y compromiso
+              social.
+            </p>
+
+          </div>
+        </div>
+      </section>
       {/* Content */}
       <section className="py-16 md:py-24">
         <div className="container-main">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-8xl mx-auto">
             <Card className="mb-8">
               <CardContent className="p-8 md:p-10">
                 <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">
