@@ -159,21 +159,26 @@ export default function Honorarios() {
 
                 <div className="space-y-2">
                   <a
-                    href="/documentos/honorarios-2025.pdf"
+                    href="/documentos/balance-2025.pdf"
+                    target="_blank"
                     className="text-primary hover:underline block"
                   >
                     Descargar referencia de honorarios 2025
                   </a>
 
                   <a
-                    href="/documentos/honorarios-2023.pdf"
+                    href="/documentos/balance-2023.pdf"
+                    target="_blank"
+                    
                     className="text-primary hover:underline block"
                   >
                     Documento de referencia 2023
                   </a>
 
                   <a
-                    href="/documentos/honorarios-2022.pdf"
+                    href="/documentos/balance-2022.pdf"
+                    target="_blank"
+                    
                     className="text-primary hover:underline block"
                   >
                     Documento de referencia 2022

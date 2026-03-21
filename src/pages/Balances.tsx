@@ -58,7 +58,7 @@ export default function Balances() {
                 <div className="space-y-3">
 
                   <a
-                    href="/documentos/balance-2024.pdf"
+                    href="/documentos/balance-2025.pdf"
                     className="block text-primary hover:underline"
                   >
                     Balance institucional 2024
