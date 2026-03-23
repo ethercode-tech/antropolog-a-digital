@@ -147,49 +147,49 @@ export default function Index() {
         </div>
 
         {/* Contenido del hero */}
-        <div className="container-main relative z-10 h-full flex items-center px-6 md:px-12 pt-16 md:pt-24">
-          <div className="max-w-4xl"> {/* Un poco más ancho para que el título no rompa en tantas líneas */}
-            <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight animate-fade-in-up drop-shadow-md">
-              Colegio de Graduados en Antropología de Jujuy
-            </h1>
+<div className="container-main relative z-10 h-full flex items-center px-4 md:px-12 pt-20 md:pt-24">
+  <div className="max-w-4xl w-full"> 
+    <h1 className="font-serif text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 md:mb-6 leading-tight animate-fade-in-up drop-shadow-md">
+      Colegio de Graduados en Antropología de Jujuy
+    </h1>
 
-            <p
-              className="text-lg md:text-2xl text-white/95 mb-10 max-w-2xl leading-relaxed animate-fade-in-up drop-shadow-sm"
-              style={{ animationDelay: "0.1s" }}
-            >
-              Acceso centralizado a trámites en línea, padrón de profesionales,
-              constancias, facturación y gestiones institucionales.
-            </p>
+    <p
+      className="text-base md:text-2xl text-white/95 mb-8 md:mb-10 max-w-2xl leading-relaxed animate-fade-in-up drop-shadow-sm"
+      style={{ animationDelay: "0.1s" }}
+    >
+      Acceso centralizado a trámites en línea, padrón de profesionales,
+      constancias, facturación y gestiones institucionales.
+    </p>
 
-            <div
-              className="flex flex-wrap gap-4 animate-fade-in-up"
-              style={{ animationDelay: "0.2s" }}
-            >
-              {/* Botones */}
-              <Button
-                asChild
-                size="lg"
-                variant="secondary"
-                className="bg-white text-primary hover:bg-gray-100 font-bold px-8 py-6 text-lg shadow-2xl transition-all"
-              >
-                <Link to="/honorarios">
-                Valor Honorario Profesional (VHP)
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Link>
-              </Button>
+    <div
+      className="flex flex-col sm:flex-row gap-3 md:gap-4 animate-fade-in-up"
+      style={{ animationDelay: "0.2s" }}
+    >
+      {/* Botones - Ajustados para ser responsive */}
+      <Button
+        asChild
+        size="lg"
+        variant="secondary"
+        className="bg-white text-primary hover:bg-gray-100 font-bold px-6 py-4 md:px-8 md:py-6 text-base md:text-lg shadow-2xl transition-all w-full sm:w-auto"
+      >
+        <Link to="/honorarios">
+          Valor Honorario Profesional (VHP)
+          <ArrowRight className="w-5 h-5 ml-2" />
+        </Link>
+      </Button>
 
-              <Button
-                asChild
-                size="lg"
-                className="bg-primary/80 backdrop-blur-sm text-white border border-white/20 hover:bg-primary px-8 py-6 text-lg transition-all"
-              >
-                <Link to="/tramites/deuda">
-                  Consultar deuda y facturas
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
+      <Button
+        asChild
+        size="lg"
+        className="bg-primary/80 backdrop-blur-sm text-white border border-white/20 hover:bg-primary px-6 py-4 md:px-8 md:py-6 text-base md:text-lg transition-all w-full sm:w-auto"
+      >
+        <Link to="/tramites/deuda">
+          Consultar deuda y facturas
+        </Link>
+      </Button>
+    </div>
+  </div>
+</div>
       </section>
 
       {/* Accesos directos para profesionales */}
