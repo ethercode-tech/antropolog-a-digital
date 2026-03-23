@@ -100,9 +100,9 @@ export default function Index() {
   );
 
   const heroImages = [
-    "/hero/hero-3.jpg",
-    "/hero/hero-1.jpg",
-    "/hero/hero-2.jpg",
+    "/hero/hero-3.webp",
+    "/hero/hero-1.webp",
+    "/hero/hero-2.webp",
   ];
 
   return (

@@ -9,18 +9,90 @@ type Autoridad = {
 };
 
 const autoridades: Autoridad[] = [
-  { nombre: "Lic. Rafael Carrillo", cargo: "Presidente", imagen: "/autoridades/carrillo.jpeg", nivel: 1, matricula: "MP 001" },
-  { nombre: "Lic. Marcela Fernández", cargo: "Vicepresidenta", imagen: "/autoridades/fernandez.jpeg", nivel: 1, matricula: "MP 002" },
-  { nombre: "Lic. Guillermo Chauque", cargo: "Secretario", imagen: "/autoridades/chauque.jpeg", nivel: 2, matricula: "MP 003" },
-  { nombre: "Lic. Martín Valda", cargo: "Prosecretario", imagen: "/autoridades/valda.jpeg", nivel: 2, matricula: "MP 004" },
-  { nombre: "Lic. Lorena García", cargo: "Tesorera", imagen: "/autoridades/garcia.jpeg", nivel: 2, matricula: "MP 005" },
-  { nombre: "Lic. Lucas Caucota", cargo: "Protesorero", imagen: "/autoridades/caucota.jpeg", nivel: 2, matricula: "MP 006" },
-  { nombre: "Lic. Aníbal Villarroel", cargo: "Vocal", imagen: "/autoridades/villarroel.jpeg", nivel: 3, matricula: "MP 007" },
-  { nombre: "Lic. Jorge Morales", cargo: "Vocal", imagen: "/autoridades/morales.jpeg", nivel: 3, matricula: "MP 008" },
-  { nombre: "Lic. Ignacio Bejarano", cargo: "Vocal", imagen: "/autoridades/bejarano.jpeg", nivel: 3, matricula: "MP 009" },
-  { nombre: "Dra. Mónica Montenegro", cargo: "Vocal", imagen: "/autoridades/montenegro.jpeg", nivel: 3, matricula: "MP 010" },
-  { nombre: "Lic. Emilia Vargas", cargo: "Vocal", imagen: "/autoridades/vargas.jpeg", nivel: 3, matricula: "MP 011" },
-  { nombre: "Lic. Fernando Sadir", cargo: "Vocal", imagen: "/autoridades/sadir.jpeg", nivel: 3, matricula: "MP 012" },
+  { 
+    nombre: "Lic. Rafael Carrillo", 
+    cargo: "Presidente", 
+    imagen: "/autoridades/carrillo.jpeg", 
+    nivel: 1, 
+    matricula: "MP 057" 
+  },
+  { 
+    nombre: "Lic. Marcela Fernández", 
+    cargo: "Vicepresidenta", 
+    imagen: "/autoridades/fernandez.jpeg", 
+    nivel: 1, 
+    matricula: "MP 091" 
+  },
+  { 
+    nombre: "Lic. Guillermo Chauque", 
+    cargo: "Secretario", 
+    imagen: "/autoridades/chauque.jpeg", 
+    nivel: 2, 
+    matricula: "MP 088" 
+  },
+  { 
+    nombre: "Lic. Martín Darío Valda", 
+    cargo: "Prosecretario", 
+    imagen: "/autoridades/valda.jpeg", 
+    nivel: 2, 
+    matricula: "MP 046" 
+  },
+  { 
+    nombre: "Lic. Lorena Claudia García", 
+    cargo: "Tesorera", 
+    imagen: "/autoridades/garcia.jpeg", 
+    nivel: 2, 
+    matricula: "MP 089" 
+  },
+  { 
+    nombre: "Lic. Lucas Darío Caucota", 
+    cargo: "Protesorero", 
+    imagen: "/autoridades/caucota.jpeg", 
+    nivel: 2, 
+    matricula: "MP 094" 
+  },
+  { 
+    nombre: "Lic. Aníbal Rolando Villarroel", 
+    cargo: "Vocal", 
+    imagen: "/autoridades/villarroel.jpeg", 
+    nivel: 3, 
+    matricula: "MP 100" 
+  },
+  { 
+    nombre: "Lic. Jorge Luis Morales", 
+    cargo: "Vocal", 
+    imagen: "/autoridades/morales.jpeg", 
+    nivel: 3, 
+    matricula: "MP 042" 
+  },
+  { 
+    nombre: "Lic. Ignacio Bejarano", 
+    cargo: "Vocal", 
+    imagen: "/autoridades/bejarano.jpeg", 
+    nivel: 3, 
+    matricula: "MP 011" 
+  },
+  { 
+    nombre: "Dra. Mónica Elizabeth Montenegro", 
+    cargo: "Vocal", 
+    imagen: "/autoridades/montenegro.jpeg", 
+    nivel: 3, 
+    matricula: "MP 017" 
+  },
+  { 
+    nombre: "Lic. Emilia Vargas", 
+    cargo: "Vocal", 
+    imagen: "/autoridades/vargas.jpeg", 
+    nivel: 3, 
+    matricula: "MP 008" 
+  },
+  { 
+    nombre: "Lic. Marcelo Fernando Sadir", 
+    cargo: "Vocal", 
+    imagen: "/autoridades/sadir.jpeg", 
+    nivel: 3, 
+    matricula: "MP 018" 
+  },
 ];
 
 export default function ConsejoDirectivo() {

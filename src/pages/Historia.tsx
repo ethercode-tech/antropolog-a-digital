@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Quote } from "lucide-react";
 
 export default function Historia() {
   return (
@@ -9,9 +10,6 @@ export default function Historia() {
           <h1 className="section-title text-center">
             Historia del Colegio de Graduados en Antropología de Jujuy
           </h1>
-          {/* <p className="section-subtitle text-center max-w-2xl mx-auto">
-            El Colegio de Graduados en Antropología de Jujuy es una institución pionera y fundamental para la antropología argentina. A través de su potestad para matricular, su defensa de la ética profesional y su promoción de la disciplina, el CGAJ ordena y jerarquiza el ejercicio profesional en Jujuy, asegurando que la práctica antropológica responda a estándares de calidad y compromiso social..
-          </p> */}
           <p className="section-subtitle text-center max-w-2xl mx-auto">
             Institución creada por Ley Provincial N.º 5753, al servicio del
             ejercicio profesional de la antropología en Jujuy.
@@ -19,36 +17,48 @@ export default function Historia() {
         </div>
       </section>
 
-      <img
-        src="/logo/logo.conletras.principal.svg"
-        alt="Colegio de Antropología"
-        className="w-80 h-32 md:w-80 md:h-32 object-contain mx-auto mt-4"
-      />
-      {/* Declaración institucional */}
-      <section className="py-16 md:py-20">
+       {/* Logo Separador */}
+       <div className="py-8">
+        <img
+          src="/logo/logo.conletras.principal.svg"
+          alt="Colegio de Antropología"
+          className="w-64 h-24 md:w-80 md:h-32 object-contain mx-auto"
+        />
+      </div>
+
+      {/* SECCIÓN DESTACADA: Declaración Institucional */}
+      <section className="py-12 md:py-16 bg-white">
         <div className="container-main">
-          <div className="max-w-3xl mx-auto text-center">
+          <div className="max-w-4xl mx-auto relative px-8 py-12 border-y border-primary/20 bg-slate-50/50">
+            {/* Adorno visual: Icono de comillas flotante */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4">
+               <Quote className="w-10 h-10 text-primary/30" />
+            </div>
 
-            <p className="text-xl md:text-2xl lg:text-4xl font-serif text-foreground leading-relaxed">
-              El Colegio de Graduados en Antropología de Jujuy es una institución
-              pionera y fundamental para la antropología argentina.
-            </p>
-
-            <p className="mt-6 text-base md:text-xl text-primary leading-relaxed">
-              A través de su potestad para matricular, su defensa de la ética
-              profesional y su promoción de la disciplina, el CGAJ ordena y
-              jerarquiza el ejercicio profesional en Jujuy, asegurando que la
-              práctica antropológica responda a estándares de calidad y compromiso
-              social.
-            </p>
-
+            <blockquote className="text-center">
+              <p className="text-xl md:text-2xl lg:text-3xl font-serif text-foreground leading-relaxed mb-8 italic">
+                "El Colegio de Graduados en Antropología de Jujuy es una institución
+                pionera y fundamental para la antropología argentina."
+              </p>
+              <footer className="text-base md:text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+                A través de su potestad para matricular, su defensa de la ética
+                profesional y su promoción de la disciplina, el <span className="text-primary font-semibold">CGAJ</span> ordena y
+                jerarquiza el ejercicio profesional en Jujuy, asegurando que la
+                práctica antropológica responda a estándares de calidad y compromiso
+                social.
+              </footer>
+            </blockquote>
           </div>
         </div>
       </section>
-      {/* Content */}
-      <section className="py-16 md:py-24">
+
+     
+
+      {/* Content: Historia Detallada */}
+      <section className="py-12 md:py-20">
         <div className="container-main">
-          <div className="max-w-8xl mx-auto">
+          <div className="max-w-4xl mx-auto">
+            
             <Card className="mb-8">
               <CardContent className="p-8 md:p-10">
                 <h2 className="font-serif text-2xl font-semibold text-foreground mb-4">
@@ -70,7 +80,6 @@ export default function Historia() {
                   éticas en el campo de las ciencias antropológicas.
                 </p>
               </CardContent>
-
             </Card>
 
             <Card className="mb-8">
@@ -116,9 +125,7 @@ export default function Historia() {
                   de la profesión, favorecer la formación continua y promover
                   la articulación entre el trabajo antropológico, las políticas
                   públicas y las demandas sociales de las comunidades de
-                  Jujuy. La escala y el ritmo de estas acciones pueden variar
-                  según cada período de gestión, pero el marco legal y las
-                  atribuciones institucionales se mantienen vigentes.
+                  Jujuy.
                 </p>
               </CardContent>
             </Card>
@@ -132,15 +139,13 @@ export default function Historia() {
                   La misión del Colegio es garantizar un ejercicio profesional
                   de la antropología que sea técnicamente competente, éticamente
                   responsable y socialmente comprometido con la realidad de
-                  Jujuy. En esa dirección, el Colegio se proyecta como un
-                  espacio de referencia para las nuevas generaciones de
-                  graduadas y graduados, y como interlocutor válido ante el
-                  Estado y la sociedad cuando se requiere la mirada
-                  antropológica para comprender y abordar problemáticas
-                  sociales, culturales y territoriales.
+                  Jujuy. El Colegio se proyecta como un espacio de referencia para 
+                  las nuevas generaciones de graduados y como interlocutor válido ante 
+                  el Estado y la sociedad.
                 </p>
               </CardContent>
             </Card>
+
           </div>
         </div>
       </section>
