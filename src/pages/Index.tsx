@@ -112,7 +112,6 @@ export default function Index() {
         className="
           relative
           w-full
-          /* 1. CAMBIO: Usamos h-dvh para ocupar toda la pantalla real y pt para compensar la navbar */
           h-dvh
           min-h-[600px]
           bg-[image:var(--hero-gradient)]
@@ -173,8 +172,8 @@ export default function Index() {
                 variant="secondary"
                 className="bg-white text-primary hover:bg-gray-100 font-bold px-8 py-6 text-lg shadow-2xl transition-all"
               >
-                <Link to="/tramites/matriculacion">
-                  Iniciar matriculación
+                <Link to="/honorarios">
+                Valor Honorario Profesional (VHP)
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Link>
               </Button>
