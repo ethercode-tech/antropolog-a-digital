@@ -181,9 +181,9 @@ async function fetchSolicitudesMatriculacion(): Promise<SolicitudMatriculacion[]
       const { data: pub } = supabase.storage
         .from(doc.bucket)
         .getPublicUrl(doc.path);
-    
+
       const publicUrl = pub?.publicUrl ?? "";
-    
+
       return {
         id: `${row.id}-${index}`,
         nombre: doc.nombre_original || "Documento",
@@ -191,7 +191,7 @@ async function fetchSolicitudesMatriculacion(): Promise<SolicitudMatriculacion[]
         url: publicUrl, // Esto es lo que usarás en <a href={doc.url}>
       };
     });
-    
+
 
     return {
       id: row.id,
@@ -283,6 +283,7 @@ async function updateSolicitudRequest(params: {
 // ───────────────────────────────
 
 export default function AdminMatriculacion() {
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -411,17 +412,17 @@ export default function AdminMatriculacion() {
 
   const handleSolicitudChange =
     (field: keyof typeof solicitudForm) =>
-    (
-      e: React.ChangeEvent<
-        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-      >
-    ) => {
-      const value = e.target.value;
-      setSolicitudForm((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    };
+      (
+        e: React.ChangeEvent<
+          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+        >
+      ) => {
+        const value = e.target.value;
+        setSolicitudForm((prev) => ({
+          ...prev,
+          [field]: value,
+        }));
+      };
 
   const handleSolicitudSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -637,26 +638,26 @@ export default function AdminMatriculacion() {
 
   const handleChange =
     (field: keyof ProfesionalFormState) =>
-    (
-      e:
-        | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-        | React.ChangeEvent<HTMLSelectElement>
-    ) => {
-      const value = e.target.value;
-      setFormState((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    };
+      (
+        e:
+          | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+          | React.ChangeEvent<HTMLSelectElement>
+      ) => {
+        const value = e.target.value;
+        setFormState((prev) => ({
+          ...prev,
+          [field]: value,
+        }));
+      };
 
   const handleCheckboxChange =
     (field: keyof ProfesionalFormState) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormState((prev) => ({
-        ...prev,
-        [field]: e.target.checked,
-      }));
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormState((prev) => ({
+          ...prev,
+          [field]: e.target.checked,
+        }));
+      };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -892,9 +893,9 @@ export default function AdminMatriculacion() {
               {isLoadingSolicitudes
                 ? "Cargando solicitudes…"
                 : isErrorSolicitudes
-                ? (errorSolicitudes as Error)?.message ??
+                  ? (errorSolicitudes as Error)?.message ??
                   "Error al cargar solicitudes"
-                : `${solicitudes.length} solicitudes`}
+                  : `${solicitudes.length} solicitudes`}
             </div>
           </div>
 
@@ -1089,24 +1090,12 @@ export default function AdminMatriculacion() {
                 </tr>
               </thead>
               <tbody>
-                {filteredProfesionales.map((p) => (
+                {filteredProfesionales.map((p) => {
+                  console.log("tipo:", p.tipo);
+                return (
                   <tr
                     key={p.id}
-                    className="border-b border-border/60 last:border-0 hover:bg-muted/40"
-                  >
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-primary" />
-                        <div>
-                          <p className="font-medium text-foreground">
-                            {p.apellido}, {p.nombre}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground">
-                            {getTipoProfesionalLabel(p.tipo)}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
+                    className="border-b border-border/60 last:border-0 hover:bg-muted/40">
                     <td className="py-3 px-4">
                       <span className="font-mono text-xs">{p.matricula}</span>
                     </td>
@@ -1128,8 +1117,8 @@ export default function AdminMatriculacion() {
                           p.estadoMatricula === "activa"
                             ? "default"
                             : p.estadoMatricula === "en_revision"
-                            ? "secondary"
-                            : "outline"
+                              ? "secondary"
+                              : "outline"
                         }
                       >
                         {getEstadoMatriculaLabel(p.estadoMatricula)}
@@ -1159,7 +1148,10 @@ export default function AdminMatriculacion() {
                       </Button>
                     </td>
                   </tr>
-                ))}
+                )
+              }
+              )
+                }
 
                 {!isLoading && filteredProfesionales.length === 0 && (
                   <tr>
@@ -1246,6 +1238,7 @@ export default function AdminMatriculacion() {
                     >
                       <option value="licenciado">Licenciado</option>
                       <option value="tecnico_otro">Técnico / Otro</option>
+                      <option value="doctor">Doctor</option>
                     </select>
                   </div>
 
@@ -1432,8 +1425,8 @@ export default function AdminMatriculacion() {
                     ? "Creando…"
                     : "Crear profesional"
                   : updateProfesional.isPending
-                  ? "Guardando…"
-                  : "Guardar cambios"}
+                    ? "Guardando…"
+                    : "Guardar cambios"}
               </Button>
             </div>
           </form>

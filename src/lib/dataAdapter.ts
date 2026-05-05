@@ -35,7 +35,7 @@ export type ProfesionalPublico = {
   id: string;
   nombre: string;
   matricula: string;
-  tipo: "Licenciado" | "Técnico / Otro";
+  tipo: "Licenciado" | "Técnico / Otro" | "Doctor";
   especialidad: string;
   lugarTrabajo: string;
   estadoMatricula: "Activa" | "Inactiva" | "En revisión";
@@ -105,8 +105,17 @@ export const mockAdminUsers = pd.mockAdminUsers ?? [];
 // -----------------------------
 
 // Mapea el tipo de la DB a lo que espera la UI pública
-function mapTipoToUI(tipo: string): "Licenciado" | "Técnico / Otro" {
-  return tipo === "licenciado" ? "Licenciado" : "Técnico / Otro";
+function mapTipoToUI(tipo: string): "Licenciado" | "Técnico / Otro" | "Doctor" {
+  switch (tipo) {
+    case "licenciado":
+      return "Licenciado";
+    case "doctor":
+      return "Doctor";
+    case "tecnico_otro":
+      return "Técnico / Otro";
+    default:
+      return "Técnico / Otro";
+  }
 }
 
 function mapEstadoMatriculaToUI(estado: string): "Activa" | "Inactiva" | "En revisión" {
