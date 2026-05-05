@@ -16,7 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { getProfesionales, ProfesionalPublico } from "@/lib/dataAdapter";
 
-type TipoProfesional = "Licenciado" | "Técnico / Otro" | "Todos";
+type TipoProfesional = "Licenciado" | "Técnico / Otro" | "Doctor" | "Todos";
 
 export default function MatriculadosPage() {
   const [profesionales, setProfesionales] = useState<ProfesionalPublico[]>([]);
@@ -145,6 +145,16 @@ export default function MatriculadosPage() {
               <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
+                  variant={
+                    tipoFilter === "Técnico / Otro" ? "default" : "outline"
+                  }
+                  size="sm"
+                  onClick={() => setTipoFilter("Técnico / Otro")}
+                >
+                  Técnico / Otro
+                </Button>
+                <Button
+                  type="button"
                   variant={tipoFilter === "Licenciado" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setTipoFilter("Licenciado")}
@@ -153,13 +163,11 @@ export default function MatriculadosPage() {
                 </Button>
                 <Button
                   type="button"
-                  variant={
-                    tipoFilter === "Técnico / Otro" ? "default" : "outline"
-                  }
+                  variant={tipoFilter === "Doctor" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setTipoFilter("Técnico / Otro")}
+                  onClick={() => setTipoFilter("Doctor")}
                 >
-                  Otros
+                  Doctor
                 </Button>
                 <Button
                   type="button"
@@ -224,8 +232,8 @@ export default function MatriculadosPage() {
                           profesional.estadoMatricula === "Activa"
                             ? "default"
                             : profesional.estadoMatricula === "En revisión"
-                            ? "secondary"
-                            : "outline"
+                              ? "secondary"
+                              : "outline"
                         }
                       >
                         {profesional.estadoMatricula}
@@ -244,9 +252,17 @@ export default function MatriculadosPage() {
                     </div>
 
                     <div className="flex justify-between items-center pt-2">
-                      <span className="text-xs text-muted-foreground">
+                      <Badge
+                        variant={
+                          profesional.tipo === "Licenciado"
+                            ? "default"
+                            : profesional.tipo === "Doctor"
+                              ? "secondary"
+                              : "outline"
+                        }
+                      >
                         {profesional.tipo}
-                      </span>
+                      </Badge>
                       <Button
                         type="button"
                         size="sm"
@@ -286,8 +302,8 @@ export default function MatriculadosPage() {
                       selected.estadoMatricula === "Activa"
                         ? "default"
                         : selected.estadoMatricula === "En revisión"
-                        ? "secondary"
-                        : "outline"
+                          ? "secondary"
+                          : "outline"
                     }
                   >
                     {selected.estadoMatricula}

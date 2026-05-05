@@ -1,4 +1,6 @@
 # Logs
+.next/
+public/documentos/
 logs
 *.log
 npm-debug.log*
