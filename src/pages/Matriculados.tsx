@@ -1,5 +1,3 @@
-"use client";
-
 import { useMemo, useState, useEffect } from "react";
 import { Search, User, Briefcase, MapPin, Clipboard, X, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
