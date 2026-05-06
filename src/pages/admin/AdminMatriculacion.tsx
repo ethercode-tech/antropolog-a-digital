@@ -1088,6 +1088,7 @@ export default function AdminMatriculacion() {
                 <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
                   <th className="text-left py-3 px-4">Profesional</th>
                   <th className="text-left py-3 px-4">Matrícula</th>
+                  <th className="text-left py-3 px-4">Tipo</th>
                   <th className="text-left py-3 px-4">Especialidad</th>
                   <th className="text-left py-3 px-4">Lugar</th>
                   <th className="text-left py-3 px-4">Estado</th>
@@ -1112,6 +1113,12 @@ export default function AdminMatriculacion() {
                       <td className="py-3 px-4">
                         <span className="font-mono text-xs">{p.matricula}</span>
                       </td>
+                      <td className="py-3 px-4">
+                        <Badge variant="outline">
+                          {getTipoProfesionalLabel(p.tipo)}
+                        </Badge>
+                      </td>
+
 
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
