@@ -88,12 +88,18 @@ type SolicitudMatriculacion = {
 // ───────────────────────────────
 
 function mapRowToProfesional(row: any): Profesional {
+  const tipoNormalizado = String(row.tipo).toLowerCase().trim();
+
+  const tipoSeguro: ProfesionalTipo = ["licenciado", "tecnico_otro", "doctor"].includes(tipoNormalizado)
+    ? (tipoNormalizado as ProfesionalTipo)
+    : "licenciado";
+
   return {
     id: row.id,
     matricula: row.matricula,
     apellido: row.apellido,
     nombre: row.nombre,
-    tipo: row.tipo as ProfesionalTipo,
+    tipo: tipoSeguro,
     especialidadPrincipal: row.especialidad_principal,
     otrasEspecialidades: row.otras_especialidades || "",
     lugarTrabajo: row.lugar_trabajo || "",
@@ -283,7 +289,7 @@ async function updateSolicitudRequest(params: {
 // ───────────────────────────────
 
 export default function AdminMatriculacion() {
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -1092,65 +1098,73 @@ export default function AdminMatriculacion() {
               <tbody>
                 {filteredProfesionales.map((p) => {
                   console.log("tipo:", p.tipo);
-                return (
-                  <tr
-                    key={p.id}
-                    className="border-b border-border/60 last:border-0 hover:bg-muted/40">
-                    <td className="py-3 px-4">
-                      <span className="font-mono text-xs">{p.matricula}</span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="w-4 h-4 text-primary" />
-                        <span>{p.especialidadPrincipal}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-primary" />
-                        <span>{p.lugarTrabajo || p.localidad || "-"}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge
-                        variant={
-                          p.estadoMatricula === "activa"
-                            ? "default"
-                            : p.estadoMatricula === "en_revision"
-                              ? "secondary"
-                              : "outline"
-                        }
-                      >
-                        {getEstadoMatriculaLabel(p.estadoMatricula)}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4">
-                      {p.tieneDeuda ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-amber-600">
-                          <AlertTriangle className="w-3 h-3" />
-                          Con deuda
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
-                          <ShieldCheck className="w-3 h-3" />
-                          Al día
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openEditDialog(p)}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                    </td>
-                  </tr>
+                  return (
+                    <tr
+                      key={p.id}
+                      className="border-b border-border/60 last:border-0 hover:bg-muted/40">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-primary" />
+                          <span>{p.apellido}, {p.nombre}</span>
+                        </div>
+                      </td>
+
+                      <td className="py-3 px-4">
+                        <span className="font-mono text-xs">{p.matricula}</span>
+                      </td>
+
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="w-4 h-4 text-primary" />
+                          <span>{p.especialidadPrincipal}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-primary" />
+                          <span>{p.lugarTrabajo || p.localidad || "-"}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge
+                          variant={
+                            p.estadoMatricula === "activa"
+                              ? "default"
+                              : p.estadoMatricula === "en_revision"
+                                ? "secondary"
+                                : "outline"
+                          }
+                        >
+                          {getEstadoMatriculaLabel(p.estadoMatricula)}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        {p.tieneDeuda ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-amber-600">
+                            <AlertTriangle className="w-3 h-3" />
+                            Con deuda
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                            <ShieldCheck className="w-3 h-3" />
+                            Al día
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => openEditDialog(p)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  )
+                }
                 )
-              }
-              )
                 }
 
                 {!isLoading && filteredProfesionales.length === 0 && (
