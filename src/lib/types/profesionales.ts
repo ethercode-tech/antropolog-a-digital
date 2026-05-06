@@ -85,3 +85,14 @@ export function getEstadoMatriculaLabel(
       return estado;
   }
 }
+
+export function getTipoBadgeVariant(tipo: ProfesionalTipo) {
+  switch (tipo) {
+    case "licenciado":
+      return "default";
+    case "doctor":
+      return "secondary";
+    default:
+      return "outline";
+  }
+}
