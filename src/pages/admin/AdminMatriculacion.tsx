@@ -1,5 +1,6 @@
 // src/pages/admin/AdminMatriculacion.tsx
 import type React from "react";
+import { getDeudaUI } from "@/lib/utils/profesionales-ui";
 import { useMemo, useState } from "react";
 import {
   Search,
@@ -1098,7 +1099,7 @@ export default function AdminMatriculacion() {
               </thead>
               <tbody>
                 {filteredProfesionales.map((p) => {
-                  console.log("tipo:", p.tipo);
+                  
                   return (
                     <tr
                       key={p.id}
@@ -1146,17 +1147,18 @@ export default function AdminMatriculacion() {
                         </Badge>
                       </td>
                       <td className="py-3 px-4">
-                        {p.tieneDeuda ? (
-                          <span className="inline-flex items-center gap-1 text-xs text-amber-600">
-                            <AlertTriangle className="w-3 h-3" />
-                            Con deuda
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
-                            <ShieldCheck className="w-3 h-3" />
-                            Al día
-                          </span>
-                        )}
+                        {(() => {
+                          const deudaUI = getDeudaUI(p.tieneDeuda);
+
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1 text-xs ${deudaUI.className}`}
+                            >
+                              <deudaUI.Icon className="w-3 h-3" />
+                              {deudaUI.label}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="py-3 px-4 text-right">
                         <Button

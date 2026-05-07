@@ -16,9 +16,50 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { getProfesionales, ProfesionalPublico } from "@/lib/dataAdapter";
 
-import { getTipoBadgeVariant, getTipoProfesionalLabel } from "@/lib/types/profesionales";
-
+import {
+  getTipoBadgeVariant,
+  getTipoProfesionalLabel,
+  getEstadoMatriculaLabel,
+} from "@/lib/types/profesionales";
+import { getDeudaUI } from "@/lib/utils/profesionales-ui";
 type TipoProfesional = "licenciado" | "tecnico_otro" | "doctor" | "todos";
+
+function getEstadoUI(
+  estado: string,
+  tieneDeuda: boolean
+) {
+  const estadoNormalizado = estado.toLowerCase();
+
+  if (estadoNormalizado === "activa") {
+    return {
+      label: "Activa",
+      variant: "default" as const,
+      deuda: tieneDeuda,
+    };
+  }
+
+  if (estadoNormalizado === "suspendida") {
+    return {
+      label: "Suspendido",
+      variant: "destructive" as const,
+      deuda: false,
+    };
+  }
+
+  if (estadoNormalizado === "inactiva") {
+    return {
+      label: "Inactiva",
+      variant: "outline" as const,
+      deuda: false,
+    };
+  }
+
+  return {
+    label: "En revisión",
+    variant: "secondary" as const,
+    deuda: false,
+  };
+}
 
 export default function MatriculadosPage() {
   const [profesionales, setProfesionales] = useState<ProfesionalPublico[]>([]);
@@ -207,71 +248,104 @@ export default function MatriculadosPage() {
           {/* List */}
           {!loading && (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {profesionalesFiltrados.map((profesional) => (
-                <Card
-                  key={profesional.id}
-                  className="hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => setSelected(profesional)}
-                >
-                  <CardContent className="p-5 space-y-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-primary" />
-                          <h2 className="font-semibold text-foreground">
-                            {profesional.nombre}
-                          </h2>
+              {profesionalesFiltrados.map((profesional) => {
+
+                const estadoUI = getEstadoUI(
+                  profesional.estadoMatricula,
+                  profesional.tieneDeuda
+                );
+                console.log(estadoUI)
+
+                const deudaUI = getDeudaUI(profesional.tieneDeuda);
+                return (
+                  <Card
+                    key={profesional.id}
+                    className="hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => setSelected(profesional)}
+                  >
+                    <CardContent className="p-5 space-y-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-primary" />
+                            <h2 className="font-semibold text-foreground">
+                              {profesional.nombre}
+                            </h2>
+                          </div>
+
+                          <p className="text-sm text-muted-foreground">
+                            Matrícula{" "}
+                            <span className="font-medium">
+                              {profesional.matricula}
+                            </span>
+                          </p>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          Matrícula{" "}
-                          <span className="font-medium">
-                            {profesional.matricula}
+
+                        {/* <Badge variant={getTipoBadgeVariant(profesional.tipo)}>
+                          {getTipoProfesionalLabel(profesional.tipo)}
+                        </Badge> */}
+                        <Badge variant={estadoUI.variant}>
+                          {estadoUI.label}
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-1 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="w-4 h-4 text-primary" />
+                          <span>{profesional.especialidad}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-primary" />
+                          <span>
+                            {profesional.lugarTrabajo || "No especificado"}
                           </span>
-                        </p>
+                        </div>
                       </div>
-                      <Badge variant={getTipoBadgeVariant(profesional.tipo)}>
-                      {getTipoProfesionalLabel(profesional.tipo)}
-                      </Badge>
-                    </div>
 
-                    <div className="space-y-1 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="w-4 h-4 text-primary" />
-                        <span>{profesional.especialidad}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-primary" />
-                        <span>{profesional.lugarTrabajo || "No especificado"}</span>
-                      </div>
-                    </div>
 
-                    <div className="flex justify-between items-center pt-2">
-                      <Badge
+                      {/* Estado + deuda */}
+                      {/* 
+                        <Badge
                         variant={
-                          profesional.tipo === "licenciado"
-                            ? "default"
-                            : profesional.tipo === "doctor"
-                              ? "secondary"
-                              : "outline"
-                        }
-                      >
-                        {getTipoProfesionalLabel(profesional.tipo)}
-                      </Badge>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelected(profesional);
-                        }}
-                      >
-                        Ver perfil
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                          profesional.estadoMatricula === "Activa"
+                          ? "default"
+                          : profesional.estadoMatricula === "En revisión"
+                          ? "secondary"
+                          : "outline"
+                          }
+                          >
+                          {profesional.estadoMatricula}
+                          </Badge>
+                          */}
+                      <div className="flex items-center gap-2 flex-wrap pt-1">
+
+                        <span
+                          className={`inline-flex items-center gap-1 text-xs ${deudaUI.className}`}
+                        >
+                          <deudaUI.Icon className="w-3 h-3" />
+                          {deudaUI.label}
+                        </span>
+                      </div>
+
+                      <div className="pt-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="w-full"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelected(profesional);
+                          }}
+                        >
+                          Ver perfil
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
 
               {profesionalesFiltrados.length === 0 && (
                 <p className="text-sm text-muted-foreground col-span-full text-center py-8">
@@ -286,96 +360,113 @@ export default function MatriculadosPage() {
       {/* Modal de detalle */}
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
         <DialogContent className="max-w-lg">
-          {selected && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center justify-between gap-3">
-                  <span>{selected.nombre}</span>
-                  <Badge
-                    variant={
-                      selected.estadoMatricula === "Activa"
-                        ? "default"
-                        : selected.estadoMatricula === "En revisión"
-                          ? "secondary"
-                          : "outline"
-                    }
-                  >
-                    {selected.estadoMatricula}
-                  </Badge>
-                </DialogTitle>
-                <DialogDescription>
-                  Ficha pública del profesional matriculado.
-                </DialogDescription>
-              </DialogHeader>
+          {selected && (() => {
+            const deudaUI = getDeudaUI(selected.tieneDeuda);
+            const estadoUI = getEstadoUI(
+              selected.estadoMatricula,
+              selected.tieneDeuda
+            );
 
-              <div className="space-y-4 mt-2">
-                <div className="space-y-1 text-sm">
-                  <p>
-                    <span className="font-semibold">Matrícula: </span>
-                    {selected.matricula}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Tipo: </span>
-                    {getTipoProfesionalLabel(selected.tipo)}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Especialidad: </span>
-                    {selected.especialidad}
-                  </p>
-                  <p>
-                    <span className="font-semibold">Lugar de trabajo: </span>
-                    {selected.lugarTrabajo || "No especificado"}
-                  </p>
-                  {selected.email && (
-                    <p>
-                      <span className="font-semibold">Correo: </span>
-                      {selected.email}
-                    </p>
-                  )}
-                  {selected.telefono && (
-                    <p>
-                      <span className="font-semibold">Teléfono: </span>
-                      {selected.telefono}
-                    </p>
-                  )}
-                  {selected.cvPdfUrl && (
-                    <p>
-                      <span className="font-semibold">CV: </span>
-                      <a
-                        href={selected.cvPdfUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary underline"
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center justify-between gap-3">
+                    <span>{selected.nombre}</span>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant={estadoUI.variant}>
+                        {estadoUI.label}
+                      </Badge>
+
+                      <div
+                        className={`inline-flex items-center gap-1 text-xs ${deudaUI.className}`}
                       >
-                        Ver CV en PDF
-                      </a>
-                    </p>
-                  )}
-                </div>
+                        <deudaUI.Icon className="w-3 h-3" />
+                        {deudaUI.label}
+                      </div>
+                    </div>
+                  </DialogTitle>
 
-                <div className="flex flex-wrap gap-3 justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => handleCopy(selected)}
-                  >
-                    <Clipboard className="w-4 h-4 mr-2" />
-                    Copiar datos
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="flex items-center gap-2"
-                    onClick={() => setSelected(null)}
-                  >
-                    <X className="w-4 h-4" />
-                    Cerrar
-                  </Button>
+                  <DialogDescription>
+                    Ficha pública del profesional matriculado.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 mt-2">
+                  <div className="space-y-1 text-sm">
+                    <p>
+                      <span className="font-semibold">Matrícula: </span>
+                      {selected.matricula}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Tipo: </span>
+                      {getTipoProfesionalLabel(selected.tipo)}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Especialidad: </span>
+                      {selected.especialidad}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Lugar de trabajo: </span>
+                      {selected.lugarTrabajo || "No especificado"}
+                    </p>
+
+                    {selected.email && (
+                      <p>
+                        <span className="font-semibold">Correo: </span>
+                        {selected.email}
+                      </p>
+                    )}
+
+                    {selected.telefono && (
+                      <p>
+                        <span className="font-semibold">Teléfono: </span>
+                        {selected.telefono}
+                      </p>
+                    )}
+
+                    {selected.cvPdfUrl && (
+                      <p>
+                        <span className="font-semibold">CV: </span>
+                        <a
+                          href={selected.cvPdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary underline"
+                        >
+                          Ver CV en PDF
+                        </a>
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 justify-between">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => handleCopy(selected)}
+                    >
+                      <Clipboard className="w-4 h-4 mr-2" />
+                      Copiar datos
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="flex items-center gap-2"
+                      onClick={() => setSelected(null)}
+                    >
+                      <X className="w-4 h-4" />
+                      Cerrar
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            );
+          })()}
+
+
         </DialogContent>
       </Dialog>
     </div>

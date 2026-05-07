@@ -38,6 +38,7 @@ export type ProfesionalPublico = {
   tipo: ProfesionalTipo;
   especialidad: string;
   lugarTrabajo: string;
+  tieneDeuda?: boolean;
   estadoMatricula: "Activa" | "Inactiva" | "En revisión";
   email?: string;
   telefono?: string;
@@ -147,7 +148,12 @@ export async function getProfesionales(): Promise<ProfesionalPublico[]> {
     tipo: p.tipo as ProfesionalTipo,
     especialidad: p.especialidad_principal,
     lugarTrabajo: p.lugar_trabajo || p.localidad || "",
-    estadoMatricula: mapEstadoMatriculaToUI(p.estado_matricula),
+
+    // 🔴 CAMBIO IMPORTANTE
+    estadoMatricula: p.estado_matricula, // crudo, no UI
+
+    tieneDeuda: p.tiene_deuda ?? false, // 🔥 NUEVO
+
     email: p.email || undefined,
     telefono: p.telefono || undefined,
     cvPdfUrl: p.cv_pdf_url || undefined,
@@ -182,7 +188,7 @@ export async function getProfesionalById(id: string): Promise<ProfesionalPublico
 
 // Buscar profesional por DNI y Matrícula (para trámites públicos)
 export async function getProfesionalByDniMatricula(
-  dni: string, 
+  dni: string,
   matricula: string
 ): Promise<ProfesionalPublico | null> {
   // Como no hay campo DNI en profesionales, buscamos por matrícula
