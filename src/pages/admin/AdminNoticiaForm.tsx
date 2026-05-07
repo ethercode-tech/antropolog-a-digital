@@ -58,7 +58,7 @@ export default function AdminNoticiaForm() {
   const queryClient = useQueryClient();
 
   const isEditing = !!id && id !== "nueva";
-
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [formData, setFormData] = useState<FormState>({
     title: "",
     content: "",
@@ -91,6 +91,62 @@ export default function AdminNoticiaForm() {
       });
     }
   }, [existingNews]);
+
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    try {
+      setIsUploadingImage(true);
+
+      // nombre único
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}.${fileExt}`;
+
+      const filePath = `news/${fileName}`;
+
+      // subir archivo
+      const { error: uploadError } = await supabase.storage
+        .from("news-images")
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // obtener url pública
+      const { data } = supabase.storage
+        .from("news-images")
+        .getPublicUrl(filePath);
+
+      const publicUrl = data.publicUrl;
+
+      setFormData((prev) => ({
+        ...prev,
+        imageUrl: publicUrl,
+      }));
+
+      toast({
+        title: "Imagen subida",
+        description: "La imagen fue cargada correctamente.",
+      });
+    } catch (err) {
+      console.error("[AdminNoticiaForm] upload image error:", err);
+
+      toast({
+        title: "Error al subir imagen",
+        description: "No se pudo subir la imagen.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const upsertNews = useMutation({
     mutationFn: async (payload: FormState) => {
@@ -244,16 +300,15 @@ export default function AdminNoticiaForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">URL de imagen (opcional)</Label>
+              <Label htmlFor="imageUrl">Imagen</Label>
               <Input
-                id="imageUrl"
-                name="imageUrl"
-                type="url"
-                placeholder="https://ejemplo.com/imagen.jpg"
-                value={formData.imageUrl}
-                onChange={handleChange}
+                id="imageUpload"
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={isUploadingImage}
               />
-              {formData.imageUrl && (
+              {/* {formData.imageUrl && (
                 <div className="mt-2 aspect-video max-w-sm rounded-lg overflow-hidden">
                   <img
                     src={formData.imageUrl}
@@ -264,6 +319,11 @@ export default function AdminNoticiaForm() {
                     }}
                   />
                 </div>
+              )} */}
+              {isUploadingImage && (
+                <p className="text-sm text-muted-foreground">
+                  Subiendo imagen...
+                </p>
               )}
             </div>
 
