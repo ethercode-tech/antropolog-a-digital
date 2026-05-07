@@ -1,5 +1,6 @@
 // src/pages/admin/AdminMatriculacion.tsx
 import type React from "react";
+import { getDeudaUI } from "@/lib/utils/profesionales-ui";
 import { useMemo, useState } from "react";
 import {
   Search,
@@ -88,12 +89,18 @@ type SolicitudMatriculacion = {
 // ───────────────────────────────
 
 function mapRowToProfesional(row: any): Profesional {
+  const tipoNormalizado = String(row.tipo).toLowerCase().trim();
+
+  const tipoSeguro: ProfesionalTipo = ["licenciado", "tecnico_otro", "doctor"].includes(tipoNormalizado)
+    ? (tipoNormalizado as ProfesionalTipo)
+    : "licenciado";
+
   return {
     id: row.id,
     matricula: row.matricula,
     apellido: row.apellido,
     nombre: row.nombre,
-    tipo: row.tipo as ProfesionalTipo,
+    tipo: tipoSeguro,
     especialidadPrincipal: row.especialidad_principal,
     otrasEspecialidades: row.otras_especialidades || "",
     lugarTrabajo: row.lugar_trabajo || "",
@@ -181,9 +188,9 @@ async function fetchSolicitudesMatriculacion(): Promise<SolicitudMatriculacion[]
       const { data: pub } = supabase.storage
         .from(doc.bucket)
         .getPublicUrl(doc.path);
-    
+
       const publicUrl = pub?.publicUrl ?? "";
-    
+
       return {
         id: `${row.id}-${index}`,
         nombre: doc.nombre_original || "Documento",
@@ -191,7 +198,7 @@ async function fetchSolicitudesMatriculacion(): Promise<SolicitudMatriculacion[]
         url: publicUrl, // Esto es lo que usarás en <a href={doc.url}>
       };
     });
-    
+
 
     return {
       id: row.id,
@@ -283,6 +290,7 @@ async function updateSolicitudRequest(params: {
 // ───────────────────────────────
 
 export default function AdminMatriculacion() {
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -411,17 +419,17 @@ export default function AdminMatriculacion() {
 
   const handleSolicitudChange =
     (field: keyof typeof solicitudForm) =>
-    (
-      e: React.ChangeEvent<
-        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-      >
-    ) => {
-      const value = e.target.value;
-      setSolicitudForm((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    };
+      (
+        e: React.ChangeEvent<
+          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+        >
+      ) => {
+        const value = e.target.value;
+        setSolicitudForm((prev) => ({
+          ...prev,
+          [field]: value,
+        }));
+      };
 
   const handleSolicitudSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -637,26 +645,26 @@ export default function AdminMatriculacion() {
 
   const handleChange =
     (field: keyof ProfesionalFormState) =>
-    (
-      e:
-        | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-        | React.ChangeEvent<HTMLSelectElement>
-    ) => {
-      const value = e.target.value;
-      setFormState((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    };
+      (
+        e:
+          | React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+          | React.ChangeEvent<HTMLSelectElement>
+      ) => {
+        const value = e.target.value;
+        setFormState((prev) => ({
+          ...prev,
+          [field]: value,
+        }));
+      };
 
   const handleCheckboxChange =
     (field: keyof ProfesionalFormState) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormState((prev) => ({
-        ...prev,
-        [field]: e.target.checked,
-      }));
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormState((prev) => ({
+          ...prev,
+          [field]: e.target.checked,
+        }));
+      };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -892,9 +900,9 @@ export default function AdminMatriculacion() {
               {isLoadingSolicitudes
                 ? "Cargando solicitudes…"
                 : isErrorSolicitudes
-                ? (errorSolicitudes as Error)?.message ??
+                  ? (errorSolicitudes as Error)?.message ??
                   "Error al cargar solicitudes"
-                : `${solicitudes.length} solicitudes`}
+                  : `${solicitudes.length} solicitudes`}
             </div>
           </div>
 
@@ -1081,6 +1089,7 @@ export default function AdminMatriculacion() {
                 <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wide">
                   <th className="text-left py-3 px-4">Profesional</th>
                   <th className="text-left py-3 px-4">Matrícula</th>
+                  <th className="text-left py-3 px-4">Tipo</th>
                   <th className="text-left py-3 px-4">Especialidad</th>
                   <th className="text-left py-3 px-4">Lugar</th>
                   <th className="text-left py-3 px-4">Estado</th>
@@ -1089,77 +1098,83 @@ export default function AdminMatriculacion() {
                 </tr>
               </thead>
               <tbody>
-                {filteredProfesionales.map((p) => (
-                  <tr
-                    key={p.id}
-                    className="border-b border-border/60 last:border-0 hover:bg-muted/40"
-                  >
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-primary" />
-                        <div>
-                          <p className="font-medium text-foreground">
-                            {p.apellido}, {p.nombre}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground">
-                            {getTipoProfesionalLabel(p.tipo)}
-                          </p>
+                {filteredProfesionales.map((p) => {
+                  
+                  return (
+                    <tr
+                      key={p.id}
+                      className="border-b border-border/60 last:border-0 hover:bg-muted/40">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-primary" />
+                          <span>{p.apellido}, {p.nombre}</span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="font-mono text-xs">{p.matricula}</span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="w-4 h-4 text-primary" />
-                        <span>{p.especialidadPrincipal}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-primary" />
-                        <span>{p.lugarTrabajo || p.localidad || "-"}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <Badge
-                        variant={
-                          p.estadoMatricula === "activa"
-                            ? "default"
-                            : p.estadoMatricula === "en_revision"
-                            ? "secondary"
-                            : "outline"
-                        }
-                      >
-                        {getEstadoMatriculaLabel(p.estadoMatricula)}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4">
-                      {p.tieneDeuda ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-amber-600">
-                          <AlertTriangle className="w-3 h-3" />
-                          Con deuda
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
-                          <ShieldCheck className="w-3 h-3" />
-                          Al día
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => openEditDialog(p)}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      <td className="py-3 px-4">
+                        <span className="font-mono text-xs">{p.matricula}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge variant="outline">
+                          {getTipoProfesionalLabel(p.tipo)}
+                        </Badge>
+                      </td>
+
+
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="w-4 h-4 text-primary" />
+                          <span>{p.especialidadPrincipal}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-primary" />
+                          <span>{p.lugarTrabajo || p.localidad || "-"}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <Badge
+                          variant={
+                            p.estadoMatricula === "activa"
+                              ? "default"
+                              : p.estadoMatricula === "en_revision"
+                                ? "secondary"
+                                : "outline"
+                          }
+                        >
+                          {getEstadoMatriculaLabel(p.estadoMatricula)}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4">
+                        {(() => {
+                          const deudaUI = getDeudaUI(p.tieneDeuda);
+
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1 text-xs ${deudaUI.className}`}
+                            >
+                              <deudaUI.Icon className="w-3 h-3" />
+                              {deudaUI.label}
+                            </span>
+                          );
+                        })()}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => openEditDialog(p)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  )
+                }
+                )
+                }
 
                 {!isLoading && filteredProfesionales.length === 0 && (
                   <tr>
@@ -1246,6 +1261,7 @@ export default function AdminMatriculacion() {
                     >
                       <option value="licenciado">Licenciado</option>
                       <option value="tecnico_otro">Técnico / Otro</option>
+                      <option value="doctor">Doctor</option>
                     </select>
                   </div>
 
@@ -1432,8 +1448,8 @@ export default function AdminMatriculacion() {
                     ? "Creando…"
                     : "Crear profesional"
                   : updateProfesional.isPending
-                  ? "Guardando…"
-                  : "Guardar cambios"}
+                    ? "Guardando…"
+                    : "Guardar cambios"}
               </Button>
             </div>
           </form>

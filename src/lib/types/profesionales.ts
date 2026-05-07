@@ -1,7 +1,10 @@
 // src/types/profesionales.ts
 
 // Tipos “canonical” en minúsculas para usar en DB y lógica
-export type ProfesionalTipo = "licenciado" | "tecnico_otro";
+export type ProfesionalTipo =
+  | "licenciado"
+  | "tecnico_otro"
+  | "doctor";
 
 export type ProfesionalEstadoMatricula =
   | "activa"
@@ -59,6 +62,8 @@ export function getTipoProfesionalLabel(tipo: ProfesionalTipo): string {
       return "Licenciado";
     case "tecnico_otro":
       return "Técnico / Otro";
+    case "doctor":
+      return "Doctor";
     default:
       return tipo;
   }
@@ -78,5 +83,16 @@ export function getEstadoMatriculaLabel(
       return "Suspendida";
     default:
       return estado;
+  }
+}
+
+export function getTipoBadgeVariant(tipo: ProfesionalTipo) {
+  switch (tipo) {
+    case "licenciado":
+      return "default";
+    case "doctor":
+      return "secondary";
+    default:
+      return "outline";
   }
 }

@@ -85,9 +85,9 @@ export default function NoticiaDetalle() {
   return (
     <div className="animate-fade-in">
       {/* Header simple con back */}
-      <section className="bg-secondary py-8">
+      <section className="bg-secondary py-4">
         <div className="container-main">
-          <Button variant="ghost" asChild className="mb-4">
+          <Button variant="ghost" asChild>
             <Link to="/noticias">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Volver a noticias
@@ -140,8 +140,8 @@ export default function NoticiaDetalle() {
             </div>
 
             {/* Back button */}
-            <div className="mt-12 pt-8 border-t border-border">
-              <Button asChild variant="outline">
+            <div className="mt-8 border-t border-border">
+              <Button asChild variant="outline" className="py-2 mt-4">
                 <Link to="/noticias">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Volver a noticias
