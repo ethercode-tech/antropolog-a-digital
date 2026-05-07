@@ -2,7 +2,7 @@
 // Adapter que centraliza acceso a datos usando Supabase
 
 import { supabase } from "@/integrations/supabase/client";
-
+import type { ProfesionalTipo } from "@/lib/types/profesionales";
 // Tipos
 export type EstadoSolicitud = "pendiente" | "en_revision" | "observado" | "aprobado" | "rechazado";
 export type EstadoDeuda = "pagado" | "pendiente";
@@ -35,9 +35,10 @@ export type ProfesionalPublico = {
   id: string;
   nombre: string;
   matricula: string;
-  tipo: "Licenciado" | "Técnico / Otro";
+  tipo: ProfesionalTipo;
   especialidad: string;
   lugarTrabajo: string;
+  tieneDeuda?: boolean;
   estadoMatricula: "Activa" | "Inactiva" | "En revisión";
   email?: string;
   telefono?: string;
@@ -105,9 +106,18 @@ export const mockAdminUsers = pd.mockAdminUsers ?? [];
 // -----------------------------
 
 // Mapea el tipo de la DB a lo que espera la UI pública
-function mapTipoToUI(tipo: string): "Licenciado" | "Técnico / Otro" {
-  return tipo === "licenciado" ? "Licenciado" : "Técnico / Otro";
-}
+// function mapTipoToUI(tipo: string): "Licenciado" | "Técnico / Otro" | "Doctor" {
+//   switch (tipo) {
+//     case "licenciado":
+//       return "Licenciado";
+//     case "doctor":
+//       return "Doctor";
+//     case "tecnico_otro":
+//       return "Técnico / Otro";
+//     default:
+//       return "Técnico / Otro";
+//   }
+// }
 
 function mapEstadoMatriculaToUI(estado: string): "Activa" | "Inactiva" | "En revisión" {
   switch (estado) {
@@ -135,10 +145,15 @@ export async function getProfesionales(): Promise<ProfesionalPublico[]> {
     id: p.id,
     nombre: `${p.nombre} ${p.apellido}`,
     matricula: p.matricula,
-    tipo: mapTipoToUI(p.tipo),
+    tipo: p.tipo as ProfesionalTipo,
     especialidad: p.especialidad_principal,
     lugarTrabajo: p.lugar_trabajo || p.localidad || "",
-    estadoMatricula: mapEstadoMatriculaToUI(p.estado_matricula),
+
+    // 🔴 CAMBIO IMPORTANTE
+    estadoMatricula: p.estado_matricula, // crudo, no UI
+
+    tieneDeuda: p.tiene_deuda ?? false, // 🔥 NUEVO
+
     email: p.email || undefined,
     telefono: p.telefono || undefined,
     cvPdfUrl: p.cv_pdf_url || undefined,
@@ -161,7 +176,7 @@ export async function getProfesionalById(id: string): Promise<ProfesionalPublico
     id: data.id,
     nombre: `${data.nombre} ${data.apellido}`,
     matricula: data.matricula,
-    tipo: mapTipoToUI(data.tipo),
+    tipo: data.tipo,
     especialidad: data.especialidad_principal,
     lugarTrabajo: data.lugar_trabajo || data.localidad || "",
     estadoMatricula: mapEstadoMatriculaToUI(data.estado_matricula),
@@ -173,7 +188,7 @@ export async function getProfesionalById(id: string): Promise<ProfesionalPublico
 
 // Buscar profesional por DNI y Matrícula (para trámites públicos)
 export async function getProfesionalByDniMatricula(
-  dni: string, 
+  dni: string,
   matricula: string
 ): Promise<ProfesionalPublico | null> {
   // Como no hay campo DNI en profesionales, buscamos por matrícula
@@ -192,7 +207,7 @@ export async function getProfesionalByDniMatricula(
     id: data.id,
     nombre: `${data.nombre} ${data.apellido}`,
     matricula: data.matricula,
-    tipo: mapTipoToUI(data.tipo),
+    tipo: data.tipo,
     especialidad: data.especialidad_principal,
     lugarTrabajo: data.lugar_trabajo || data.localidad || "",
     estadoMatricula: mapEstadoMatriculaToUI(data.estado_matricula),
@@ -334,7 +349,7 @@ export async function getUltimaFacturaPorMatricula(
     id: prof.id,
     nombre: prof.apellido && prof.nombre ? `${prof.apellido}, ${prof.nombre}` : (prof.nombre ?? ""),
     matricula: prof.matricula,
-    tipo: "Licenciado",
+    tipo: "licenciado",
     especialidad: "",
     lugarTrabajo: "",
     estadoMatricula: "Activa"
